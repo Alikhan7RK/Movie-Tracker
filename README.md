@@ -3,7 +3,7 @@
 
 ## 👥 Team Members
 
-* Ryskulov Aliakhan
+* Ryskulov Alikhan
 * Assylbek Manarbek
 * Kenzhetayev Kaisar
 

@@ -1,0 +1,62 @@
+.detail {
+  display: flex;
+  gap: 30px;
+  padding: 30px;
+  background: #020617;
+  color: white;
+  min-height: 100vh;
+}
+
+.detail img {
+  width: 300px;
+  border-radius: 12px;
+}
+
+.info {
+  max-width: 500px;
+}
+
+.review-box {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stars span {
+  font-size: 22px;
+  cursor: pointer;
+  color: gray;
+}
+
+.stars span.active {
+  color: gold;
+}
+
+textarea {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #0f172a;
+  color: white;
+}
+
+button {
+  padding: 10px;
+  background: #7c3aed;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+.comments {
+  margin-top: 20px;
+}
+
+.comment {
+  background: #0f172a;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}

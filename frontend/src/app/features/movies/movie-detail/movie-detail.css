@@ -3,6 +3,7 @@
   background: #020617;
   color: white;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .top {
@@ -13,12 +14,16 @@
 
 .poster {
   width: 320px;
+  max-width: 100%;
   border-radius: 18px;
   object-fit: cover;
   flex-shrink: 0;
+  display: block;
 }
 
 .info {
+  flex: 1;
+  min-width: 0;
   max-width: 700px;
 }
 
@@ -26,6 +31,8 @@
   font-size: 52px;
   margin: 0 0 16px;
   font-weight: 700;
+  line-height: 1.1;
+  word-break: break-word;
 }
 
 .genre {
@@ -43,7 +50,7 @@
 
 .desc {
   color: #dbe4ff;
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1.5;
   margin-bottom: 24px;
 }
@@ -59,6 +66,7 @@
   color: #dbe4ff;
   font-size: 18px;
   line-height: 1.5;
+  word-break: break-word;
 }
 
 .extra span {
@@ -99,6 +107,7 @@ textarea {
   color: white;
   min-height: 110px;
   resize: vertical;
+  box-sizing: border-box;
 }
 
 button {
@@ -130,4 +139,156 @@ button {
   font-weight: 600;
   display: inline-block;
   margin-bottom: 8px;
+}
+
+@media (max-width: 1100px) {
+  .top {
+    gap: 32px;
+  }
+
+  .poster {
+    width: 260px;
+  }
+
+  .info h1 {
+    font-size: 42px;
+  }
+}
+
+@media (max-width: 850px) {
+  .detail {
+    padding: 24px 16px;
+  }
+
+  .top {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .poster {
+    width: 280px;
+  }
+
+  .info {
+    width: 100%;
+    max-width: 100%;
+    text-align: left;
+  }
+
+  .info h1 {
+    font-size: 38px;
+  }
+
+  .genre {
+    font-size: 18px;
+  }
+
+  .rating {
+    font-size: 24px;
+  }
+
+  .desc {
+    font-size: 16px;
+  }
+
+  .extra p {
+    font-size: 16px;
+  }
+
+  .review-section {
+    margin-top: 40px;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .detail {
+    padding: 20px 12px;
+  }
+
+  .poster {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .info h1 {
+    font-size: 30px;
+  }
+
+  .genre {
+    font-size: 16px;
+  }
+
+  .rating {
+    font-size: 22px;
+  }
+
+  .desc {
+    font-size: 15px;
+  }
+
+  .extra p {
+    font-size: 15px;
+  }
+
+  .stars span {
+    font-size: 22px;
+  }
+
+  button {
+    font-size: 15px;
+  }
+}
+.rating-stars {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 18px;
+}
+
+.star {
+  position: relative;
+  font-size: 28px;
+  color: #475569;
+}
+
+.star.full {
+  color: #facc15;
+}
+
+.star.half {
+  color: #475569;
+}
+
+.star.half::before {
+  content: "★";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 50%;
+  overflow: hidden;
+  color: #facc15;
+}
+
+.rating-number {
+  margin-left: 6px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #facc15;
+}
+.page,
+.detail {
+  animation: fadeIn 0.35s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

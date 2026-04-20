@@ -10,8 +10,7 @@
       <span class="genre-badge">{{ movie.genre }}</span>
 
       <div class="stats">
-        <span class="votes">★ {{ movie.votes }}</span>
-        <span class="rating">★ {{ movie.rating }}</span>
+        <span class="rating">★ {{ (movie.rating / 2).toFixed(1) }}</span>
       </div>
     </div>
   </div>

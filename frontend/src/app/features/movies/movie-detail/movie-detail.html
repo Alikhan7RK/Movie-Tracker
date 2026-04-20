@@ -7,7 +7,9 @@
     <div class="info">
       <h1>{{ movie.title }}</h1>
       <p class="genre">{{ movie.genre }}</p>
-      <p class="rating">⭐ {{ movie.rating }}</p>
+      <p class="rating">
+        ★ {{ (movie.rating / 2).toFixed(1) }}
+      </p>
       <p class="desc">{{ movie.description }}</p>
 
       <div class="extra">

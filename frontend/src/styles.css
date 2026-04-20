@@ -9,3 +9,7 @@ html, body {
 * {
   box-sizing: border-box;
 }
+button,
+.nav-links a {
+  transition: all 0.2s ease;
+}

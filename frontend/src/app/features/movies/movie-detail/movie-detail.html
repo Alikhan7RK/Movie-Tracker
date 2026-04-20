@@ -19,6 +19,9 @@
         <p><span>Actors:</span> {{ movie.actors }}</p>
         <p><span>Duration:</span> {{ movie.duration }}</p>
       </div>
+      <button class="watchlist-btn" (click)="addToWatchlist()">
+        Add to Watchlist
+      </button>
     </div>
   </div>
 

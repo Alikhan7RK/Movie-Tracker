@@ -1,30 +1,86 @@
 .detail {
-  display: flex;
-  gap: 30px;
-  padding: 30px;
+  padding: 40px;
   background: #020617;
   color: white;
   min-height: 100vh;
 }
 
-.detail img {
-  width: 300px;
-  border-radius: 12px;
+.top {
+  display: flex;
+  gap: 60px;
+  align-items: flex-start;
+}
+
+.poster {
+  width: 320px;
+  border-radius: 18px;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .info {
-  max-width: 500px;
+  max-width: 700px;
 }
 
-.review-box {
-  margin-top: 20px;
+.info h1 {
+  font-size: 52px;
+  margin: 0 0 16px;
+  font-weight: 700;
+}
+
+.genre {
+  color: #94a3b8;
+  font-size: 20px;
+  margin-bottom: 14px;
+}
+
+.rating {
+  color: gold;
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.desc {
+  color: #dbe4ff;
+  font-size: 22px;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.extra {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+.extra p {
+  margin: 0;
+  color: #dbe4ff;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.extra span {
+  color: #94a3b8;
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.review-section {
+  margin-top: 70px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.review-section h2 {
+  margin-bottom: 18px;
+}
+
 .stars span {
-  font-size: 22px;
+  font-size: 26px;
   cursor: pointer;
   color: gray;
 }
@@ -34,29 +90,44 @@
 }
 
 textarea {
-  padding: 10px;
-  border-radius: 8px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 10px;
   border: none;
   background: #0f172a;
   color: white;
+  min-height: 110px;
+  resize: vertical;
 }
 
 button {
-  padding: 10px;
-  background: #7c3aed;
+  margin-top: 12px;
+  padding: 12px;
+  width: 100%;
+  background: linear-gradient(90deg, #7c3aed, #9333ea);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   color: white;
   cursor: pointer;
+  font-size: 16px;
 }
 
 .comments {
-  margin-top: 20px;
+  margin-top: 24px;
+  text-align: left;
 }
 
 .comment {
   background: #0f172a;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 10px;
+  padding: 14px;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+
+.comment-rating {
+  color: gold;
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 8px;
 }

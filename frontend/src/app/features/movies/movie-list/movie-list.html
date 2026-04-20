@@ -1,0 +1,32 @@
+<app-navbar></app-navbar>
+
+<div class="page">
+  <h1 class="page-title">Movies</h1>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <span class="search-icon">⌕</span>
+      <input
+        type="text"
+        placeholder="Search movies..."
+        [(ngModel)]="search"
+      />
+    </div>
+
+    <div class="filter-box">
+      <select [(ngModel)]="selectedGenre">
+        <option value="">Filter by Genre</option>
+        @for (genre of genres; track genre) {
+          <option [value]="genre">{{ genre }}</option>
+        }
+      </select>
+      <span class="arrow">⌄</span>
+    </div>
+  </div>
+
+  <div class="movies-grid">
+    @for (movie of filteredMovies; track movie.id) {
+      <app-movie-card [movie]="movie"></app-movie-card>
+    }
+  </div>
+</div>

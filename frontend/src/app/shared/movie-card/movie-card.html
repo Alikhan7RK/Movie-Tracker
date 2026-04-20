@@ -1,0 +1,18 @@
+<div class="movie-card" (click)="openMovie()">
+  <div class="poster-wrap">
+    <img [src]="movie.image" />
+  </div>
+
+  <div class="movie-info">
+    <h3>{{ movie.title }}</h3>
+
+    <div class="meta-row">
+      <span class="genre-badge">{{ movie.genre }}</span>
+
+      <div class="stats">
+        <span class="votes">★ {{ movie.votes }}</span>
+        <span class="rating">★ {{ movie.rating }}</span>
+      </div>
+    </div>
+  </div>
+</div>

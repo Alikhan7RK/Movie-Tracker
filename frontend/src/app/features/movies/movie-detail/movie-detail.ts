@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../../../shared/navbar/navbar';
-import { MovieService } from '../../../service/movie.service';
+import { MovieService } from '../../../services/movie.service';
 
 @Component({
   selector: 'app-movie-detail',

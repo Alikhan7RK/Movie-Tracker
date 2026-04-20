@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../../../shared/navbar/navbar';
 import { MovieCard } from '../../../shared/movie-card/movie-card';
-import { MovieService } from '../../../service/movie.service';
+import { MovieService } from '../../../services/movie.service';
 
 @Component({
   selector: 'app-movie-list',

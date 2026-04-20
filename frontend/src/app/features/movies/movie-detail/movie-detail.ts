@@ -14,7 +14,6 @@ import { MovieService } from '../../../service/movie.service';
 })
 export class MovieDetail {
   movie: any;
-
   rating = 0;
   comment = '';
   comments: any[] = [];
@@ -32,7 +31,7 @@ export class MovieDetail {
   }
 
   addComment() {
-    if (!this.comment) return;
+    if (!this.comment || !this.rating) return;
 
     this.comments.push({
       text: this.comment,

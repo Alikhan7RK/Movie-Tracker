@@ -1,42 +1,44 @@
 <app-navbar></app-navbar>
 
 <div class="detail" *ngIf="movie">
-  <img [src]="movie.image" />
+  <div class="top">
+    <img class="poster" [src]="movie.image" [alt]="movie.title" />
 
-  <div class="info">
-    <h1>{{ movie.title }}</h1>
-    <p>{{ movie.genre }}</p>
-    <p>⭐ {{ movie.rating }}</p>
-    <p>{{ movie.description }}</p>
+    <div class="info">
+      <h1>{{ movie.title }}</h1>
+      <p class="genre">{{ movie.genre }}</p>
+      <p class="rating">⭐ {{ movie.rating }}</p>
+      <p class="desc">{{ movie.description }}</p>
 
-    <div class="review-box">
-      <h3>Leave a review</h3>
-
-      <div class="stars">
-        @for (star of [1,2,3,4,5]; track star) {
-          <span
-            (click)="setRating(star)"
-            [class.active]="star <= rating"
-          >
-            ★
-          </span>
-        }
+      <div class="extra">
+        <p><span>Release date:</span> {{ movie.releaseDate }}</p>
+        <p><span>Country:</span> {{ movie.country }}</p>
+        <p><span>Director:</span> {{ movie.director }}</p>
+        <p><span>Actors:</span> {{ movie.actors }}</p>
+        <p><span>Duration:</span> {{ movie.duration }}</p>
       </div>
-
-      <textarea
-        [(ngModel)]="comment"
-        placeholder="Write your comment..."
-      ></textarea>
-
-      <button (click)="addComment()">Submit</button>
     </div>
+  </div>
+
+  <div class="review-section">
+    <h2>Leave a review</h2>
+
+    <div class="stars">
+      @for (star of [1,2,3,4,5]; track star) {
+        <span (click)="setRating(star)" [class.active]="star <= rating">★</span>
+      }
+    </div>
+
+    <textarea [(ngModel)]="comment" placeholder="Write your comment..."></textarea>
+
+    <button (click)="addComment()">Submit</button>
 
     <div class="comments">
       <h3>Comments</h3>
 
       @for (c of comments; track c) {
         <div class="comment">
-          <span class="rating">⭐ {{ c.rating }}</span>
+          <span class="comment-rating">⭐ {{ c.rating }}</span>
           <p>{{ c.text }}</p>
         </div>
       }

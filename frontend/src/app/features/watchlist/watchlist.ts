@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { Navbar } from '../../shared/navbar/navbar';
 import { WatchlistService } from '../../services/watchlist.service';
 import { WatchlistItem } from '../../models/watchlist.model';
@@ -16,10 +17,15 @@ export class Watchlist {
   loading = true;
   error = '';
 
-  constructor(private watchlistService: WatchlistService) {}
+  constructor(
+    private watchlistService: WatchlistService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
-    this.loadWatchlist();
+    this.route.url.subscribe(() => {
+      this.loadWatchlist();
+    });
   }
 
   loadWatchlist(): void {

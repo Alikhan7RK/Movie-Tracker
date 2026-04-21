@@ -69,23 +69,36 @@ def login_view(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def profile_view(request):
+    reviews = Review.objects.filter(user=request.user).select_related('movie').order_by('-created_at')
+    reviews_data = [
+        {
+            'id': r.id,
+            'movie': r.movie.id,
+            'movie_title': r.movie.title,
+            'text': r.text,
+            'stars': r.stars,
+            'created_at': r.created_at,
+        }
+        for r in reviews
+    ]
     return Response(
         {
             'id': request.user.id,
             'username': request.user.username,
             'email': request.user.email,
+            'reviews': reviews_data,
         },
         status=status.HTTP_200_OK
     )
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def logout_view(request):
-    return Response(
-        {'message': 'Logout successful'},
-        status=status.HTTP_200_OK
-    )
+#@api_view(['POST'])
+#@permission_classes([IsAuthenticated])
+#def logout_view(request):
+    #return Response(
+        #{'message': 'Logout successful'},
+        #status=status.HTTP_200_OK
+    #)
 
 
 class MovieListCreateView(APIView):
@@ -193,5 +206,4 @@ class LogoutView(APIView):
 
         except Exception:
             return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
-    
 

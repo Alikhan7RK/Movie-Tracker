@@ -92,13 +92,13 @@ def profile_view(request):
     )
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def logout_view(request):
-    return Response(
-        {'message': 'Logout successful'},
-        status=status.HTTP_200_OK
-    )
+#@api_view(['POST'])
+#@permission_classes([IsAuthenticated])
+#def logout_view(request):
+    #return Response(
+        #{'message': 'Logout successful'},
+        #status=status.HTTP_200_OK
+    #)
 
 
 class MovieListCreateView(APIView):
@@ -206,5 +206,4 @@ class LogoutView(APIView):
 
         except Exception:
             return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
-    
 

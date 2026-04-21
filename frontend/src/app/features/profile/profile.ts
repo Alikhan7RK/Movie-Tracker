@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Navbar } from '../../shared/navbar/navbar';
 import { UserProfile } from '../../models/user.model';
@@ -33,23 +33,14 @@ export class Profile {
   }
 
   loadProfile(): void {
-    const token = this.authService.getToken();
-
-    if (!token) {
-      this.error = 'No token found. Please login again.';
-      this.loading = false;
-      return;
-    }
-
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-
-    this.http.get<UserProfile>('http://127.0.0.1:8000/api/profile/', { headers }).subscribe({
+    this.http.get<UserProfile>('http://127.0.0.1:8000/api/profile/').subscribe({
       next: (data) => {
         this.profile = data;
         this.loading = false;
       },
       error: (err) => {
         console.error('Profile load error:', err);
+
         if (err.status === 0) {
           this.error = 'Cannot connect to server. Make sure the backend is running on port 8000.';
         } else if (err.status === 401) {
@@ -58,6 +49,7 @@ export class Profile {
         } else {
           this.error = `Error ${err.status}: Failed to load profile.`;
         }
+
         this.loading = false;
       }
     });

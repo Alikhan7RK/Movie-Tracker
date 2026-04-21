@@ -16,16 +16,31 @@ export class AuthService {
   }
 
   login(username: string, password: string): Observable<any> {
-    return this.http.post<{ access: string; refresh: string }>(`${this.apiUrl}/login/`, { username, password }).pipe(
-      tap((res: any) => {
-        localStorage.setItem('access_token', res.access);
-        localStorage.setItem('refresh_token', res.refresh);
-        localStorage.setItem('username', username);
-      })
-    );
+    return this.http
+      .post<{ access: string; refresh: string }>(`${this.apiUrl}/login/`, { username, password })
+      .pipe(
+        tap((res) => {
+          localStorage.setItem('access_token', res.access);
+          localStorage.setItem('refresh_token', res.refresh);
+          localStorage.setItem('username', username);
+        })
+      );
   }
 
   logout(): void {
+    const refresh = localStorage.getItem('refresh_token');
+
+    if (refresh) {
+      this.http.post(`${this.apiUrl}/logout/`, { refresh }).subscribe({
+        next: () => this.clearSession(),
+        error: () => this.clearSession()
+      });
+    } else {
+      this.clearSession();
+    }
+  }
+
+  private clearSession(): void {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('username');

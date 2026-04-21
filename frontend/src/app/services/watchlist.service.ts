@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { WatchlistItem } from '../models/watchlist.model';
 
@@ -11,29 +11,17 @@ export class WatchlistService {
 
   constructor(private http: HttpClient) {}
 
-  private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('access_token');
-    return new HttpHeaders({
-      Authorization: `Bearer ${token}`
-    });
-  }
-
   getWatchlist(): Observable<WatchlistItem[]> {
-    return this.http.get<WatchlistItem[]>(this.apiUrl, {
-      headers: this.getAuthHeaders()
-    });
+    return this.http.get<WatchlistItem[]>(this.apiUrl);
   }
 
-  addToWatchlist(movieId: number, status: 'planned' | 'watching' | 'completed' = 'planned'): Observable<WatchlistItem> {
-    return this.http.post<WatchlistItem>(
-      this.apiUrl,
-      {
-        movie: movieId,
-        status: status
-      },
-      {
-        headers: this.getAuthHeaders()
-      }
-    );
+  addToWatchlist(
+    movieId: number,
+    status: 'planned' | 'watching' | 'completed' = 'planned'
+  ): Observable<WatchlistItem> {
+    return this.http.post<WatchlistItem>(this.apiUrl, {
+      movie: movieId,
+      status: status
+    });
   }
 }

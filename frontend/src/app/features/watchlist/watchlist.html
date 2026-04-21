@@ -12,17 +12,28 @@
   }
 
   @if (!loading && !error && items.length === 0) {
-    <p class="info-text">Your watchlist is empty.</p>
+    <div class="empty-state">
+      <h2>Your watchlist is empty</h2>
+      <p>Add movies from the details page to see them here.</p>
+    </div>
   }
 
   @if (!loading && !error && items.length > 0) {
     <div class="watchlist-list">
       @for (item of items; track item.id) {
         <div class="watchlist-card">
+          <img
+            class="watchlist-poster"
+            [src]="item.movie_poster || 'https://via.placeholder.com/140x200?text=No+Image'"
+            [alt]="item.movie_title"
+          />
+
           <div class="watchlist-info">
             <h3>{{ item.movie_title }}</h3>
-            <p>Status: {{ item.status }}</p>
-            <p>Added: {{ item.added_at | date:'mediumDate' }}</p>
+            <p class="meta">Year: {{ item.movie_year }}</p>
+            <p class="meta">Rating: ★ {{ item.movie_rating }}</p>
+            <p class="status">Status: {{ item.status }}</p>
+            <p class="date">Added: {{ item.added_at | date:'mediumDate' }}</p>
           </div>
         </div>
       }

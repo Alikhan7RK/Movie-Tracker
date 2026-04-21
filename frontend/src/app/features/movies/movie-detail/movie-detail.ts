@@ -50,8 +50,14 @@ export class MovieDetail {
       next: () => {
         alert('Movie added to watchlist!');
       },
-      error: () => {
-        alert('Failed to add movie to watchlist. Make sure you are logged in.');
+      error: (err) => {
+        if (err.status === 400 && err.error?.movie) {
+          alert(err.error.movie[0] || err.error.movie);
+        } else if (err.status === 401) {
+          alert('You need to log in first.');
+        } else {
+         alert('Failed to add movie to watchlist.');
+        }
       }
     });
   }

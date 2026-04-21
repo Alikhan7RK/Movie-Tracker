@@ -84,6 +84,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 class WatchlistSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
     movie_title = serializers.CharField(source='movie.title', read_only=True)
+    movie_poster = serializers.CharField(source='movie.poster_url', read_only=True)
+    movie_year = serializers.IntegerField(source='movie.year', read_only=True)
+    movie_rating = serializers.DecimalField(source='movie.rating', max_digits=3, decimal_places=1, read_only=True)
 
     class Meta:
         model = Watchlist
@@ -92,6 +95,21 @@ class WatchlistSerializer(serializers.ModelSerializer):
             'user',
             'movie',
             'movie_title',
+            'movie_poster',
+            'movie_year',
+            'movie_rating',
             'status',
             'added_at',
         ]
+
+    def validate(self, attrs):
+        request = self.context.get('request')
+        movie = attrs.get('movie')
+
+        if request and request.user and request.user.is_authenticated:
+            if Watchlist.objects.filter(user=request.user, movie=movie).exists():
+                raise serializers.ValidationError({
+                    'movie': 'This movie is already in your watchlist.'
+                })
+
+        return attrs

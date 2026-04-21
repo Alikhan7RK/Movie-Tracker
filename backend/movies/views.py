@@ -171,7 +171,7 @@ class WatchlistListCreateView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = WatchlistSerializer(data=request.data)
+        serializer = WatchlistSerializer(data=request.data, context={'request': request})
 
         if serializer.is_valid():
             serializer.save(user=request.user)

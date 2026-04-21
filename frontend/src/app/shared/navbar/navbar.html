@@ -7,7 +7,15 @@
   <nav class="nav-links">
     <a routerLink="/movies" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Movies</a>
     <a routerLink="/watchlist" routerLinkActive="active">Watchlist</a>
-    <a routerLink="/login" routerLinkActive="active">Login</a>
-    <a routerLink="/register" routerLinkActive="active">Register</a>
+
+    @if (authService.isLoggedIn()) {
+      <a routerLink="/profile" routerLinkActive="active" class="user-link">
+        <span class="user-icon">👤</span>{{ authService.getUsername() }}
+      </a>
+      <button class="btn-logout" (click)="logout()">Logout</button>
+    } @else {
+      <a routerLink="/login" routerLinkActive="active">Login</a>
+      <a routerLink="/register" routerLinkActive="active" class="btn-register">Register</a>
+    }
   </nav>
 </header>

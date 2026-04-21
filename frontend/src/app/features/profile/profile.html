@@ -1,0 +1,52 @@
+<app-navbar></app-navbar>
+
+<div class="profile-page">
+
+  @if (loading) {
+    <p class="info-text">Loading profile...</p>
+  }
+
+  @if (!loading && error) {
+    <p class="error-text">{{ error }}</p>
+  }
+
+  @if (!loading && !error && profile) {
+    <div class="profile-header">
+      <div class="avatar">{{ profile.username[0].toUpperCase() }}</div>
+      <div class="profile-info">
+        <h1 class="username">{{ profile.username }}</h1>
+        <p class="email">{{ profile.email || 'No email provided' }}</p>
+        <p class="reviews-count">{{ profile.reviews.length }} review{{ profile.reviews.length !== 1 ? 's' : '' }}</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">My Reviews</h2>
+
+      @if (profile.reviews.length === 0) {
+        <p class="info-text">You haven't written any reviews yet.</p>
+      }
+
+      <div class="reviews-list">
+        @for (review of profile.reviews; track review.id) {
+          <div class="review-card">
+            <div class="review-top">
+              <span class="movie-name">{{ review.movie_title }}</span>
+              <div class="stars">
+                @for (s of getStars(review.stars); track $index) {
+                  <span class="star filled">{{ s }}</span>
+                }
+                @for (s of getEmptyStars(review.stars); track $index) {
+                  <span class="star empty">{{ s }}</span>
+                }
+              </div>
+            </div>
+            <p class="review-text">{{ review.text }}</p>
+            <span class="review-date">{{ review.created_at | date:'mediumDate' }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+</div>

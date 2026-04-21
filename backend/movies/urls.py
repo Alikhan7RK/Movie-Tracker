@@ -9,15 +9,14 @@ from .views import (
     MovieDetailView,
     ReviewListCreateView,
     WatchlistListCreateView,
-
 )
 
 urlpatterns = [
     path('register/', register_view, name='register'),
     path('login/', login_view, name='login'),
     path('profile/', profile_view, name='profile'),
-    path('logout/', logout_view, name='logout'),
-    #path('logout/', LogoutView.as_view()),
+
+    path('logout/', LogoutView.as_view()),
 
     path('movies/', MovieListCreateView.as_view(), name='movie-list-create'),
     path('movies/<int:pk>/', MovieDetailView.as_view(), name='movie-detail'),

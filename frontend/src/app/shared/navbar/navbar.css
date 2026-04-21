@@ -14,6 +14,8 @@
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .logo-icon {
@@ -63,6 +65,48 @@
   color: #ffffff;
 }
 
+/* Register button — outlined purple */
+.btn-register {
+  border: 1px solid rgba(124, 58, 237, 0.6) !important;
+  color: #a855f7 !important;
+}
+
+.btn-register:hover {
+  background: rgba(124, 58, 237, 0.18) !important;
+  color: #c084fc !important;
+}
+
+/* Logged-in user link */
+.user-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-icon {
+  font-size: 14px;
+}
+
+/* Logout button */
+.btn-logout {
+  background: none;
+  border: 1px solid rgba(119, 135, 161, 0.25);
+  border-radius: 10px;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-logout:hover {
+  border-color: rgba(248, 113, 113, 0.5);
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.07);
+}
+
 @media (max-width: 900px) {
   .navbar {
     padding: 14px 16px;
@@ -90,9 +134,9 @@
     font-size: 13px;
     padding: 7px 10px;
   }
-}
 
-.logo-wrap {
-  text-decoration: none;
-  cursor: pointer;
+  .btn-logout {
+    font-size: 13px;
+    padding: 7px 10px;
+  }
 }

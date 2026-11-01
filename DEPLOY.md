@@ -85,6 +85,7 @@ start with it when `DEBUG` is off.)
    | `DJANGO_SUPERUSER_USERNAME` | the admin login you want, e.g. `admin` |
    | `DJANGO_SUPERUSER_PASSWORD` | a strong password (this is your admin password!) |
    | `DJANGO_SUPERUSER_EMAIL` | your email (optional) |
+   | `TMDB_API_KEY` | optional: your TMDB key, for the admin "Import from TMDB" page (see below) |
 
    You do **not** need to set `DEBUG` or `ALLOWED_HOSTS`: on Render, `DEBUG` is off automatically and
    Render's own address is allowed automatically (see `settings.py`).
@@ -256,12 +257,27 @@ so confirm on the pricing pages before relying on them).
 
 ---
 
+## TMDB key (optional, for "Import from TMDB")
+
+1. Create a free account on **themoviedb.org**, then open your avatar → **Settings** → **API**.
+2. Request an API key (choose the free personal/developer use) and copy either the **API Key** or the
+   **API Read Access Token** — both work.
+3. On Render: your service → **Environment** → add `TMDB_API_KEY` → **Save, rebuild, and deploy**.
+   Locally: copy `backend/.env.example` to `backend/.env` and paste the key there.
+
+Never commit the key: `backend/.env` is git-ignored. Without a key everything else works; only the import page
+shows "TMDB_API_KEY is not set on the server".
+TMDB's free API is for non-commercial use and asks apps to show an attribution — the import page does this.
+
+---
+
 ## Environment variables reference (backend)
 
 | Variable | Needed on Render? | Default when not set (local) | Meaning |
 |---|---|---|---|
 | `DATABASE_URL` | ✅ | local `db.sqlite3` | PostgreSQL connection string |
 | `SECRET_KEY` | ✅ | public dev key (refused when `DEBUG` is off) | Django's secret |
+| `TMDB_API_KEY` | optional | empty (TMDB import disabled) | The Movie Database v3 key or v4 read token |
 | `CORS_ALLOWED_ORIGINS` | ✅ (step 6) | `http://localhost:4200` | Frontend addresses, comma-separated |
 | `DJANGO_SUPERUSER_USERNAME` / `_PASSWORD` / `_EMAIL` | for the first admin | — (skipped) | Used by `create_admin` in `build.sh` |
 | `PYTHON_VERSION` | recommended | Render's default | Python version for Render |

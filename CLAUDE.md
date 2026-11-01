@@ -82,7 +82,10 @@ Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI
   (`old_password`, `new_password`, min 4 like register). Profile page has both forms; username in localStorage is kept in sync.
 
 ### Stage 2 — features
-- TMDB import for admins (search TMDB, prefill/create a movie; API key in env, never committed).
+- ~~TMDB import for admins~~ — DONE: `movies/tmdb.py` (urllib client; every request goes through `_get`, which tests
+  mock — never call the real API in tests), `GET /api/tmdb/search/?q=`, `POST /api/tmdb/import/ {tmdb_id}` (admin).
+  `Movie.tmdb_id` (unique, migration 0008) prevents duplicates; a same title+year movie without tmdb_id is linked.
+  Frontend page `/movies/import` (adminGuard). Key: `TMDB_API_KEY` env var or git-ignored `backend/.env` (see .env.example).
 - Stats page with charts (e.g. watchlist by status, reviews per genre, ratings over time).
 - Recommendations (e.g. based on genres of highly rated / completed movies).
 - Custom lists (user-created named lists of movies, beyond the single watchlist).
@@ -94,6 +97,9 @@ Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI
 - ~~Responsive design + dark/light theme~~ — DONE early (cinema redesign, see Conventions).
 
 ### Notes
+- API docs: drf-spectacular, Swagger UI at `/api/docs/`, schema at `/api/schema/`. Views stay APIView/@api_view, so
+  every new endpoint needs `@extend_schema(tags, summary, description, request, responses)`; docs-only response shapes
+  live in `movies/schema.py`. Check with `python manage.py spectacular --file NUL --validate` (0 errors, 0 warnings).
 - `Movie.backdrop_url` (optional, migration 0007): wide image for the hero + movie-detail background. Frontend always goes
   through `shared/backdrop.ts` (`backdropImage()` = backdrop, else poster; `usesPosterAsBackdrop()` picks the poster crop).
   seed_movies has real TMDB w1280 backdrops (checked: 1280x720 JPEGs). After pulling: `migrate` + `seed_movies`.

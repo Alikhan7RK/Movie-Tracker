@@ -47,7 +47,10 @@
       }
     </div>
     @if (isAdmin) {
-      <a class="btn btn-primary" routerLink="/movies/new">+ Add movie</a>
+      <div class="admin-buttons">
+        <a class="btn btn-outline" routerLink="/movies/import">Import from TMDB</a>
+        <a class="btn btn-primary" routerLink="/movies/new">+ Add movie</a>
+      </div>
     }
   </div>
 

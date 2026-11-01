@@ -1,0 +1,63 @@
+<app-navbar></app-navbar>
+
+<main class="container">
+  <header class="page-head">
+    <span class="eyebrow">Admin</span>
+    <h1 class="page-title">Import from TMDB</h1>
+    <p class="hint">
+      Search The Movie Database and import a movie with its poster, backdrop, cast, genres and trailer.
+      Importing a movie again updates it.
+    </p>
+  </header>
+
+  <form class="search-row" (ngSubmit)="search()">
+    <input type="text" name="query" [(ngModel)]="query" placeholder="Movie title, e.g. Dune" aria-label="Movie title" />
+    <button class="btn btn-primary" type="submit" [disabled]="searching()">
+      {{ searching() ? 'Searching...' : 'Search' }}
+    </button>
+  </form>
+
+  @if (error()) {
+    <p class="alert alert-error" role="alert">{{ error() }}</p>
+  }
+
+  <div class="results">
+    @for (result of results(); track result.tmdb_id) {
+      <article class="result card">
+        <img class="poster-img" [src]="result.poster_url || '/no-poster.svg'" [alt]="result.title" loading="lazy" />
+
+        <div class="result-info">
+          <h2 class="result-title">{{ result.title }}</h2>
+          <div class="chips">
+            @if (result.year) { <span class="chip">{{ result.year }}</span> }
+            @if (result.rating) { <span class="chip chip-rating">★ {{ result.rating }}/10</span> }
+          </div>
+          <p class="overview">{{ result.overview || 'No description on TMDB.' }}</p>
+
+          <div class="actions">
+            @if (result.imported_movie_id) {
+              <a class="btn btn-ghost btn-sm" [routerLink]="['/movies', result.imported_movie_id]">Open</a>
+              <button class="btn btn-outline btn-sm" (click)="importMovie(result)" [disabled]="importingId() !== null">
+                {{ importingId() === result.tmdb_id ? 'Updating...' : 'Update from TMDB' }}
+              </button>
+            } @else {
+              <button class="btn btn-primary btn-sm" (click)="importMovie(result)" [disabled]="importingId() !== null">
+                {{ importingId() === result.tmdb_id ? 'Importing...' : 'Import' }}
+              </button>
+            }
+          </div>
+        </div>
+      </article>
+    } @empty {
+      @if (searched() && !searching()) {
+        <p class="state-message">No movies found on TMDB.</p>
+      }
+    }
+  </div>
+
+  <!-- The TMDB terms of use ask apps that use their API to show this notice -->
+  <p class="attribution">
+    This product uses the <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB</a>
+    API but is not endorsed or certified by TMDB.
+  </p>
+</main>

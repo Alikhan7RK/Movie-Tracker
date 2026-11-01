@@ -1,13 +1,17 @@
+import json
 import os
 from decimal import Decimal
 from io import StringIO
 from unittest import mock
+from urllib.error import URLError
 
 from django.contrib.auth.models import User
 from django.core.management import call_command
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from . import tmdb
 from .models import Genre, Movie, Review, Watchlist
 
 
@@ -687,3 +691,266 @@ class BackdropTests(APITestCase):
             with self.subTest(movie=movie.title):
                 self.assertTrue(movie.backdrop_url.startswith('https://image.tmdb.org/t/p/w1280/'))
                 self.assertNotEqual(movie.backdrop_url, movie.poster_url)
+
+
+# ---------- API docs + TMDB import (TMDB is always mocked: no real network calls) ----------
+
+FAKE_SEARCH = {
+    'results': [
+        {'id': 157336, 'title': 'Interstellar', 'release_date': '2014-11-05', 'overview': 'Space.',
+         'poster_path': '/poster.jpg', 'vote_average': 8.46},
+        {'id': 999, 'title': 'No Date Movie', 'release_date': '', 'overview': '', 'poster_path': None, 'vote_average': 0},
+    ]
+}
+
+FAKE_DETAILS = {
+    'id': 157336,
+    'title': 'Interstellar',
+    'overview': 'A team of explorers travel through a wormhole in space.',
+    'release_date': '2014-11-05',
+    'poster_path': '/poster.jpg',
+    'backdrop_path': '/backdrop.jpg',
+    'runtime': 169,
+    'vote_average': 8.46,
+    'genres': [{'id': 1, 'name': 'Adventure'}, {'id': 2, 'name': 'Drama'}],
+    'production_countries': [{'iso_3166_1': 'US', 'name': 'United States of America'},
+                             {'iso_3166_1': 'GB', 'name': 'United Kingdom'}],
+    'credits': {
+        'crew': [{'name': 'Hans Zimmer', 'job': 'Original Music Composer'},
+                 {'name': 'Christopher Nolan', 'job': 'Director'}],
+        # Deliberately out of order: the import must use TMDB's "order" (top billing), not the list order
+        'cast': [
+            {'name': 'Actor 6', 'order': 5}, {'name': 'Matthew McConaughey', 'order': 0},
+            {'name': 'Jessica Chastain', 'order': 2}, {'name': 'Actor 7', 'order': 6},
+            {'name': 'Anne Hathaway', 'order': 1}, {'name': 'Bill Irwin', 'order': 3},
+            {'name': 'Ellen Burstyn', 'order': 4},
+        ],
+    },
+    'videos': {
+        'results': [
+            {'site': 'YouTube', 'type': 'Teaser', 'key': 'teaser123', 'official': True},
+            {'site': 'Vimeo', 'type': 'Trailer', 'key': 'vimeo456', 'official': True},
+            {'site': 'YouTube', 'type': 'Trailer', 'key': 'zSWdZVtXT7E', 'official': True},
+        ]
+    },
+}
+
+
+def fake_tmdb_get(path, params=None):
+    # Stands in for movies.tmdb._get in tests
+    if path == '/search/movie':
+        return FAKE_SEARCH
+    if path == '/movie/157336':
+        return FAKE_DETAILS
+    if path == '/movie/999':
+        return {**FAKE_DETAILS, 'id': 999, 'title': 'No Date Movie', 'release_date': ''}
+    raise tmdb.TmdbError('Movie not found on TMDB.', status=404)
+
+
+class ApiDocsTests(APITestCase):
+    def test_schema_is_generated(self):
+        response = self.client.get('/api/schema/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.content.decode()
+        self.assertIn('CineTrack API', content)
+        self.assertIn('/api/movies/', content)
+        self.assertIn('/api/tmdb/import/', content)
+
+    def test_swagger_ui_page_loads(self):
+        response = self.client.get('/api/docs/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('swagger', response.content.decode().lower())
+
+
+@override_settings(TMDB_API_KEY='test-key')
+@mock.patch('movies.tmdb._get', side_effect=fake_tmdb_get)
+class TmdbImportTests(APITestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user('admin', password='secret123', is_staff=True)
+        self.user = User.objects.create_user('user', password='secret123')
+
+    def test_search_and_import_are_admin_only(self, fake_get):
+        guest_search = self.client.get('/api/tmdb/search/?q=interstellar')
+        self.client.force_authenticate(self.user)
+        user_search = self.client.get('/api/tmdb/search/?q=interstellar')
+        user_import = self.client.post('/api/tmdb/import/', {'tmdb_id': 157336})
+
+        self.assertEqual(guest_search.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(user_search.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(user_import.status_code, status.HTTP_403_FORBIDDEN)
+        fake_get.assert_not_called()
+
+    def test_search_returns_short_results(self, fake_get):
+        self.client.force_authenticate(self.admin)
+
+        response = self.client.get('/api/tmdb/search/?q=interstellar')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        first = response.data[0]
+        self.assertEqual(first['tmdb_id'], 157336)
+        self.assertEqual(first['year'], 2014)
+        self.assertEqual(first['poster_url'], 'https://image.tmdb.org/t/p/w500/poster.jpg')
+        self.assertEqual(first['rating'], 8.5)
+        self.assertIsNone(first['imported_movie_id'])
+        self.assertIsNone(response.data[1]['year'])
+        self.assertIsNone(response.data[1]['poster_url'])
+        fake_get.assert_called_once()
+        self.assertEqual(fake_get.call_args.args[1]['query'], 'interstellar')
+
+    def test_search_marks_already_imported_movies(self, fake_get):
+        movie = make_movie('Interstellar', tmdb_id=157336)
+        self.client.force_authenticate(self.admin)
+
+        response = self.client.get('/api/tmdb/search/?q=interstellar')
+
+        self.assertEqual(response.data[0]['imported_movie_id'], movie.id)
+
+    def test_search_needs_a_query(self, fake_get):
+        self.client.force_authenticate(self.admin)
+
+        response = self.client.get('/api/tmdb/search/?q=%20')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        fake_get.assert_not_called()
+
+    def test_import_creates_movie_with_all_fields(self, fake_get):
+        Genre.objects.create(name='Drama')  # existing genre is reused, Adventure is created
+        self.client.force_authenticate(self.admin)
+
+        response = self.client.post('/api/tmdb/import/', {'tmdb_id': 157336}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        movie = Movie.objects.get(tmdb_id=157336)
+        self.assertEqual(response.data['id'], movie.id)
+        self.assertEqual(movie.title, 'Interstellar')
+        self.assertEqual(movie.description, 'A team of explorers travel through a wormhole in space.')
+        self.assertEqual(movie.year, 2014)
+        self.assertEqual(movie.poster_url, 'https://image.tmdb.org/t/p/w500/poster.jpg')
+        self.assertEqual(movie.backdrop_url, 'https://image.tmdb.org/t/p/w1280/backdrop.jpg')
+        self.assertEqual(movie.director, 'Christopher Nolan')
+        self.assertEqual(
+            movie.actors,
+            'Matthew McConaughey, Anne Hathaway, Jessica Chastain, Bill Irwin, Ellen Burstyn',
+        )
+        self.assertEqual(movie.country, 'United States of America, United Kingdom')
+        self.assertEqual(movie.duration, 169)
+        self.assertEqual(movie.trailer_url, 'https://www.youtube.com/watch?v=zSWdZVtXT7E')
+        self.assertEqual(movie.base_rating, Decimal('8.5'))
+        self.assertEqual(movie.rating, Decimal('8.5'))  # no reviews yet -> TMDB rating
+        self.assertEqual(sorted(g.name for g in movie.genres.all()), ['Adventure', 'Drama'])
+        self.assertEqual(Genre.objects.filter(name='Drama').count(), 1)
+
+    def test_importing_again_updates_instead_of_duplicating(self, fake_get):
+        self.client.force_authenticate(self.admin)
+        first = self.client.post('/api/tmdb/import/', {'tmdb_id': 157336}, format='json')
+        Movie.objects.filter(id=first.data['id']).update(title='Old title', duration=1)
+
+        second = self.client.post('/api/tmdb/import/', {'tmdb_id': 157336}, format='json')
+
+        self.assertEqual(second.status_code, status.HTTP_200_OK)
+        self.assertEqual(second.data['id'], first.data['id'])
+        self.assertEqual(Movie.objects.count(), 1)
+        movie = Movie.objects.get()
+        self.assertEqual(movie.title, 'Interstellar')
+        self.assertEqual(movie.duration, 169)
+
+    def test_import_links_a_seeded_movie_with_the_same_title_and_year(self, fake_get):
+        seeded = make_movie('Interstellar')  # make_movie uses year 2010
+        seeded.year = 2014
+        seeded.save()
+        self.client.force_authenticate(self.admin)
+
+        response = self.client.post('/api/tmdb/import/', {'tmdb_id': 157336}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], seeded.id)
+        self.assertEqual(Movie.objects.count(), 1)
+        seeded.refresh_from_db()
+        self.assertEqual(seeded.tmdb_id, 157336)
+
+    def test_import_keeps_the_review_based_rating(self, fake_get):
+        self.client.force_authenticate(self.admin)
+        movie_id = self.client.post('/api/tmdb/import/', {'tmdb_id': 157336}, format='json').data['id']
+        Review.objects.create(user=self.user, movie_id=movie_id, text='Ok', stars=3)
+
+        self.client.post('/api/tmdb/import/', {'tmdb_id': 157336}, format='json')
+
+        self.assertEqual(Movie.objects.get(id=movie_id).rating, Decimal('6.0'))
+
+    def test_import_errors(self, fake_get):
+        self.client.force_authenticate(self.admin)
+
+        not_found = self.client.post('/api/tmdb/import/', {'tmdb_id': 12345}, format='json')
+        no_date = self.client.post('/api/tmdb/import/', {'tmdb_id': 999}, format='json')
+        bad_id = self.client.post('/api/tmdb/import/', {'tmdb_id': 'abc'}, format='json')
+
+        self.assertEqual(not_found.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(no_date.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('release date', no_date.data['error'])
+        self.assertEqual(bad_id.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Movie.objects.count(), 0)
+
+
+class TmdbClientTests(APITestCase):
+    # Tests for the low-level request in movies.tmdb._get; urlopen is mocked, so nothing leaves the computer
+
+    @override_settings(TMDB_API_KEY='')
+    @mock.patch('movies.tmdb.urlopen')
+    def test_missing_key_gives_503_without_calling_tmdb(self, fake_urlopen):
+        self.client.force_authenticate(User.objects.create_user('admin', password='secret123', is_staff=True))
+
+        response = self.client.get('/api/tmdb/search/?q=interstellar')
+
+        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertIn('TMDB_API_KEY', response.data['error'])
+        fake_urlopen.assert_not_called()
+
+    def _fake_response(self, body):
+        response = mock.MagicMock()
+        response.read.return_value = json.dumps(body).encode()
+        response.__enter__.return_value = response
+        return response
+
+    @override_settings(TMDB_API_KEY='v3key123')
+    @mock.patch('movies.tmdb.urlopen')
+    def test_v3_api_key_goes_in_the_url(self, fake_urlopen):
+        fake_urlopen.return_value = self._fake_response({'results': []})
+
+        tmdb.search_movies('dune')
+
+        request = fake_urlopen.call_args.args[0]
+        self.assertTrue(request.full_url.startswith('https://api.themoviedb.org/3/search/movie?'))
+        self.assertIn('api_key=v3key123', request.full_url)
+        self.assertIn('query=dune', request.full_url)
+        self.assertIsNone(request.get_header('Authorization'))
+
+    @override_settings(TMDB_API_KEY='eyJv4-read-access-token')
+    @mock.patch('movies.tmdb.urlopen')
+    def test_v4_token_goes_in_the_header(self, fake_urlopen):
+        fake_urlopen.return_value = self._fake_response({'results': []})
+
+        tmdb.search_movies('dune')
+
+        request = fake_urlopen.call_args.args[0]
+        self.assertEqual(request.get_header('Authorization'), 'Bearer eyJv4-read-access-token')
+        self.assertNotIn('api_key', request.full_url)
+
+    @override_settings(TMDB_API_KEY='v3key123')
+    @mock.patch('movies.tmdb.urlopen')
+    def test_network_problems_become_a_clear_error(self, fake_urlopen):
+        fake_urlopen.side_effect = URLError('no internet')
+
+        with self.assertRaises(tmdb.TmdbError) as raised:
+            tmdb.search_movies('dune')
+
+        self.assertEqual(raised.exception.status, 502)
+
+
+class SeedTmdbIdTests(APITestCase):
+    def test_seeded_movies_have_their_tmdb_ids(self):
+        call_command('seed_movies', stdout=StringIO())
+
+        self.assertEqual(Movie.objects.get(title='Interstellar').tmdb_id, 157336)
+        self.assertFalse(Movie.objects.filter(tmdb_id__isnull=True).exists())

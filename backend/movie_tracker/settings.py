@@ -20,6 +20,16 @@ from django.core.exceptions import ImproperlyConfigured
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+# Local secrets (e.g. TMDB_API_KEY) can go in backend/.env as KEY=value lines (see .env.example).
+# The file is git-ignored. Real environment variables always win over it.
+_env_file = BASE_DIR / '.env'
+if _env_file.exists():
+    for _line in _env_file.read_text(encoding='utf-8').splitlines():
+        _line = _line.strip()
+        if _line and not _line.startswith('#') and '=' in _line:
+            _key, _value = _line.split('=', 1)
+            os.environ.setdefault(_key.strip(), _value.strip().strip('"').strip("'"))
+
 # Settings come from environment variables in production (see DEPLOY.md).
 # Without them the values below are used, so local development works as before (SQLite, DEBUG on).
 
@@ -72,6 +82,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt.token_blacklist',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -190,7 +201,24 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
     ),
+    # OpenAPI schema for the docs at /api/docs/
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'CineTrack API',
+    'DESCRIPTION': (
+        'REST API of CineTrack (Movie Tracker): movies, genres, reviews, watchlist, user profile and TMDB import.' + chr(10) * 2 +
+        'Log in with `POST /api/login/`, then click **Authorize** and paste the `access` token.'
+    ),
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,  # don't list /api/schema/ itself in the docs
+    'COMPONENT_SPLIT_REQUEST': True,  # separate request/response models, so read-only fields aren't shown as inputs
+}
+
+# The Movie Database (themoviedb.org) key for the admin "Import from TMDB" page.
+# Either the v3 "API Key" or the v4 "API Read Access Token" works. Never commit it: use an env variable or backend/.env.
+TMDB_API_KEY = os.environ.get('TMDB_API_KEY', '').strip()
 
 from datetime import timedelta
 

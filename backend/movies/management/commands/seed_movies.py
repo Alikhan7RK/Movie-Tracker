@@ -7,6 +7,7 @@ from movies.models import Genre, Movie
 MOVIES = [
     {
         'title': 'Inception',
+        'tmdb_id': 27205,
         'genre': 'Sci-Fi',
         'rating': 8.8,
         'poster_url': 'https://image.tmdb.org/t/p/w500/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg',
@@ -20,6 +21,7 @@ MOVIES = [
     },
     {
         'title': 'The Dark Knight',
+        'tmdb_id': 155,
         'genre': 'Action',
         'rating': 9.0,
         'poster_url': 'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
@@ -33,6 +35,7 @@ MOVIES = [
     },
     {
         'title': 'Interstellar',
+        'tmdb_id': 157336,
         'genre': 'Sci-Fi',
         'rating': 8.6,
         'poster_url': 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
@@ -46,6 +49,7 @@ MOVIES = [
     },
     {
         'title': 'The Shawshank Redemption',
+        'tmdb_id': 278,
         'genre': 'Drama',
         'rating': 9.3,
         'poster_url': 'https://image.tmdb.org/t/p/w500/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg',
@@ -59,6 +63,7 @@ MOVIES = [
     },
     {
         'title': 'Pulp Fiction',
+        'tmdb_id': 680,
         'genre': 'Crime',
         'rating': 8.9,
         'poster_url': 'https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg',
@@ -72,6 +77,7 @@ MOVIES = [
     },
     {
         'title': 'The Godfather',
+        'tmdb_id': 238,
         'genre': 'Crime',
         'rating': 9.2,
         'poster_url': 'https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg',
@@ -85,6 +91,7 @@ MOVIES = [
     },
     {
         'title': 'Fight Club',
+        'tmdb_id': 550,
         'genre': 'Drama',
         'rating': 8.8,
         'poster_url': 'https://image.tmdb.org/t/p/w500/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
@@ -98,6 +105,7 @@ MOVIES = [
     },
     {
         'title': 'Gladiator',
+        'tmdb_id': 98,
         'genre': 'Action',
         'rating': 8.5,
         'poster_url': 'https://image.tmdb.org/t/p/w500/ty8TGRuvJLPUmAR1H1nRIsgwvim.jpg',
@@ -130,6 +138,7 @@ class Command(BaseCommand):
                     'base_rating': data['rating'],
                     'poster_url': data['poster_url'],
                     'backdrop_url': data['backdrop_url'],
+                    'tmdb_id': data['tmdb_id'],
                     'content_type': 'movie',
                     'director': data['director'],
                     'actors': data['actors'],

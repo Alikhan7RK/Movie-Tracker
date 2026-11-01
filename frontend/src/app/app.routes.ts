@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { MovieList } from './features/movies/movie-list/movie-list';
 import { MovieDetail } from './features/movies/movie-detail/movie-detail';
 import { MovieForm } from './features/movies/movie-form/movie-form';
+import { TmdbImport } from './features/movies/tmdb-import/tmdb-import';
 import { Watchlist } from './features/watchlist/watchlist';
 import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
@@ -12,8 +13,9 @@ import { adminGuard } from './core/interceptors/guards/admin.guard';
 export const routes: Routes = [
   { path: '', redirectTo: 'movies', pathMatch: 'full' },
   { path: 'movies', component: MovieList },
-  // 'movies/new' must come before 'movies/:id', otherwise "new" would be read as a movie id
+  // 'movies/new' and 'movies/import' must come before 'movies/:id', otherwise they would be read as a movie id
   { path: 'movies/new', component: MovieForm, canActivate: [adminGuard] },
+  { path: 'movies/import', component: TmdbImport, canActivate: [adminGuard] },
   { path: 'movies/:id/edit', component: MovieForm, canActivate: [adminGuard] },
   { path: 'movies/:id', component: MovieDetail },
   { path: 'watchlist', component: Watchlist, canActivate: [authGuard] },

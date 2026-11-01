@@ -75,6 +75,7 @@ class MovieSerializer(serializers.ModelSerializer):
             'trailer_url',
             'poster_url',
             'backdrop_url',
+            'tmdb_id',
             'content_type',
             'director',
             'actors',
@@ -85,7 +86,7 @@ class MovieSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         # rating is calculated by the server (Movie.update_rating), admins set base_rating instead
-        read_only_fields = ['rating']
+        read_only_fields = ['rating', 'tmdb_id']  # tmdb_id is set by the TMDB import
 
     def validate_year(self, value):
         max_year = date.today().year + 5
@@ -153,3 +154,6 @@ class WatchlistSerializer(serializers.ModelSerializer):
                 })
 
         return attrs
+
+class TmdbImportSerializer(serializers.Serializer):
+    tmdb_id = serializers.IntegerField(min_value=1, help_text='The movie id on themoviedb.org (from /api/tmdb/search/).')

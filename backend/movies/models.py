@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Avg
 from django.contrib.auth.models import User
 
 # Create your models here.
@@ -35,6 +36,13 @@ class Movie(models.Model):
     def __str__(self):
         return f"{self.title} ({self.year})"
 
+    def update_rating(self):
+        # Rating = average of review stars (1-5) converted to the 10-point scale (stars * 2).
+        # No reviews left -> rating goes back to 0.
+        average_stars = self.reviews.aggregate(avg=Avg('stars'))['avg']
+        self.rating = round(average_stars * 2, 1) if average_stars is not None else 0
+        self.save(update_fields=['rating'])
+
 
 class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
@@ -42,6 +50,10 @@ class Review(models.Model):
     text = models.TextField()
     stars = models.PositiveSmallIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # One review per user per movie
+        unique_together = ('user', 'movie')
 
     def __str__(self):
         return f"Review by {self.user.username} for {self.movie.title}"

@@ -316,3 +316,69 @@ button {
 .state-message.error {
   color: #f87171;
 }
+
+.message {
+  margin: 12px 0 0;
+  color: #4ade80;
+  font-size: 15px;
+}
+
+.message.error {
+  color: #f87171;
+}
+
+.hint {
+  color: #94a3b8;
+  font-size: 16px;
+}
+
+.hint a,
+.in-watchlist a {
+  color: #c084fc;
+}
+
+.in-watchlist {
+  margin-top: 16px;
+  color: #dbe4ff;
+  font-size: 17px;
+}
+
+.in-watchlist strong {
+  color: #c084fc;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.comment-user {
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.comment-date {
+  color: #7f8da6;
+  font-size: 13px;
+}
+
+.comment p {
+  margin: 0;
+}
+
+.comment .delete-review {
+  width: auto;
+  margin-top: 10px;
+  padding: 6px 12px;
+  font-size: 13px;
+  background: transparent;
+  border: 1px solid #f87171;
+  color: #f87171;
+}

@@ -176,21 +176,63 @@ class MovieDetailView(APIView):
 
 
 class ReviewListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    # Anyone can read reviews, only logged-in users can write them
+    def get_permissions(self):
+        if self.request.method in SAFE_METHODS:
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get(self, request):
         reviews = Review.objects.select_related('user', 'movie').all().order_by('-created_at')
+
+        # /api/reviews/?movie=3 -> only reviews of movie 3
+        movie_id = request.query_params.get('movie')
+        if movie_id:
+            if not movie_id.isdigit():
+                return Response({'error': 'movie must be a number'}, status=status.HTTP_400_BAD_REQUEST)
+            reviews = reviews.filter(movie_id=movie_id)
+
         serializer = ReviewSerializer(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         serializer = ReviewSerializer(data=request.data)
 
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # One review per user per movie: if the user already reviewed this movie, update that review
+        movie = serializer.validated_data['movie']
+        existing = Review.objects.filter(user=request.user, movie=movie).first()
+
+        if existing:
+            serializer = ReviewSerializer(existing, data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+        review = serializer.save(user=request.user)
+        review.movie.update_rating()
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK if existing else status.HTTP_201_CREATED
+        )
+
+
+class ReviewDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            review = Review.objects.select_related('movie').get(pk=pk)
+        except Review.DoesNotExist:
+            return Response({'error': 'Review not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if review.user != request.user:
+            return Response({'error': 'You can only delete your own review'}, status=status.HTTP_403_FORBIDDEN)
+
+        movie = review.movie
+        review.delete()
+        movie.update_rating()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class WatchlistListCreateView(APIView):
@@ -209,7 +251,39 @@ class WatchlistListCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
+class WatchlistDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, request, pk):
+        # Only look in the current user's own watchlist, so nobody can touch another user's items
+        try:
+            return Watchlist.objects.select_related('movie').get(pk=pk, user=request.user)
+        except Watchlist.DoesNotExist:
+            return None
+
+    def patch(self, request, pk):
+        item = self.get_object(request, pk)
+        if not item:
+            return Response({'error': 'Watchlist item not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Only the status can be changed
+        serializer = WatchlistSerializer(item, data={'status': request.data.get('status')}, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        item = self.get_object(request, pk)
+        if not item:
+            return Response({'error': 'Watchlist item not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        item.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]

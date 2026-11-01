@@ -2,15 +2,11 @@
 
 <div class="profile-page">
 
-  @if (loading) {
+  @if (loading()) {
     <p class="info-text">Loading profile...</p>
-  }
-
-  @if (!loading && error) {
-    <p class="error-text">{{ error }}</p>
-  }
-
-  @if (!loading && !error && profile) {
+  } @else if (error()) {
+    <p class="error-text">{{ error() }}</p>
+  } @else if (profile(); as profile) {
     <div class="profile-header">
       <div class="avatar">{{ profile.username[0].toUpperCase() }}</div>
       <div class="profile-info">

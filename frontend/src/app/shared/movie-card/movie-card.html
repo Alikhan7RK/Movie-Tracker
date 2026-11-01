@@ -1,10 +1,6 @@
 <div class="movie-card" (click)="openMovie()">
   <div class="poster-wrap">
-    @if (movie.poster_url) {
-      <img [src]="movie.poster_url" [alt]="movie.title" />
-    } @else {
-      <div class="no-poster">No poster</div>
-    }
+    <img [src]="movie.poster_url || '/no-poster.svg'" [alt]="movie.title" />
   </div>
 
   <div class="movie-info">

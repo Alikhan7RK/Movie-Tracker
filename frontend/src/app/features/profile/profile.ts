@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -15,9 +15,10 @@ import { API_URL } from '../../core/api.config';
   styleUrl: './profile.css'
 })
 export class Profile {
-  profile: UserProfile | null = null;
-  loading = true;
-  error = '';
+  // Signals, so the page updates when the HTTP response arrives (zoneless app)
+  profile = signal<UserProfile | null>(null);
+  loading = signal(true);
+  error = signal('');
 
   constructor(
     private http: HttpClient,
@@ -36,22 +37,22 @@ export class Profile {
   loadProfile(): void {
     this.http.get<UserProfile>(`${API_URL}/profile/`).subscribe({
       next: (data) => {
-        this.profile = data;
-        this.loading = false;
+        this.profile.set(data);
+        this.loading.set(false);
       },
       error: (err) => {
         console.error('Profile load error:', err);
 
         if (err.status === 0) {
-          this.error = 'Cannot connect to server. Make sure the backend is running on port 8000.';
+          this.error.set('Cannot connect to server. Make sure the backend is running on port 8000.');
         } else if (err.status === 401) {
-          this.error = 'Session expired. Please login again.';
+          this.error.set('Session expired. Please login again.');
           setTimeout(() => this.router.navigate(['/login']), 1500);
         } else {
-          this.error = `Error ${err.status}: Failed to load profile.`;
+          this.error.set(`Error ${err.status}: Failed to load profile.`);
         }
 
-        this.loading = false;
+        this.loading.set(false);
       }
     });
   }

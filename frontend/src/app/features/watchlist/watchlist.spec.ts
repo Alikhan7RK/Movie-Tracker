@@ -1,14 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 
 import { Watchlist } from './watchlist';
 
-describe('Wathclist', () => {
+describe('Watchlist', () => {
   let component: Watchlist;
   let fixture: ComponentFixture<Watchlist>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Watchlist]
+      imports: [Watchlist],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])]
     })
     .compileComponents();
 

@@ -33,18 +33,19 @@ Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI
 7. ~~Expired token breaks public pages~~ — DONE: interceptor catches 401 on authenticated requests, clears session, redirects to /login.
 8. ~~Pending migration~~ — DONE (0003).
 9. ~~requirements.txt is UTF-16~~ — DONE (UTF-8).
+3. ~~Reviews are local only~~ — DONE: `GET /api/reviews/?movie=<id>` is public; POST needs login and updates the user's existing
+   review instead of creating a second one (unique user+movie, migration 0005); `DELETE /api/reviews/<id>/` (owner only, else 403).
+   After every create/update/delete `Movie.update_rating()` sets rating = average stars * 2 (0 when no reviews are left).
+   movie-detail loads reviews (username, stars, date), form only for logged-in users, owner can delete their review.
+4. ~~Watchlist can't be changed~~ — DONE: `PATCH` (status only) and `DELETE` on `/api/watchlist/<id>/`; other users get 404.
+   Watchlist page: status dropdown, Remove button, All/Planned/Watching/Completed tabs. movie-detail shows the status if the
+   movie is already in the watchlist.
+10. ~~UX polish~~ — DONE: no `alert()` (inline messages), local placeholder `public/no-poster.svg`, rating "★ x.x/10" via the
+    `rating` pipe, `@if` everywhere, watchlist + profile pages use signals.
 
 ### Still open
-3. **Reviews on the movie page are local only.** `movie-detail.ts` pushes into a local `comments` array. Use `ReviewService`.
-   Backend: `GET /api/reviews/` requires auth and returns ALL reviews -> allow anonymous GET, support `?movie=<id>` filter,
-   show username + date. Optionally prevent duplicate reviews per user/movie and recompute `Movie.rating` from review average.
-4. **Watchlist status can't be changed or removed.** Only list/create exist. Add `PATCH` and `DELETE` on `/api/watchlist/<id>/`
-   (only the owner), and a status dropdown + Remove button in the watchlist page. Optional: filter tabs Planned/Watching/Completed.
 5. (frontend part) **Movie CRUD has no UI.** Add an Add/Edit movie form page + Delete button in Angular, shown only when `isAdmin()`.
-10. **UX polish:** replace `alert()` in movie-detail with an inline message/toast; `via.placeholder.com` is dead (watchlist page) — use a
-    local placeholder. (Done: rating shown as "★ x.x/10" everywhere via the `rating` pipe; movie-detail uses `@if`.)
-    Watchlist and profile pages still keep HTTP results in plain fields — move them to signals (zoneless app).
 11. **Tests:** `backend/movies/tests.py` is empty. Add APITestCase tests for register/login, movies CRUD permissions, reviews, watchlist.
     Angular `.spec.ts` files are probably stale after refactors — fix or keep them minimal so `ng test` passes
-    (movie-card/list/detail specs were updated with HttpClient/router providers).
+    (movie-card/list/detail and watchlist specs were updated with HttpClient/router providers).
 12. **README**: replace "(Planned)" sections with the real endpoints and setup steps (incl. migrate + seed_movies).

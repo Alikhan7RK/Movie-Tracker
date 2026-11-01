@@ -3,39 +3,62 @@
 <div class="watchlist-page">
   <h1>My Watchlist</h1>
 
-  @if (loading) {
+  @if (loading()) {
     <p class="info-text">Loading watchlist...</p>
-  }
-
-  @if (!loading && error) {
-    <p class="error-text">{{ error }}</p>
-  }
-
-  @if (!loading && !error && items.length === 0) {
+  } @else if (error()) {
+    <p class="error-text">{{ error() }}</p>
+  } @else if (items().length === 0) {
     <div class="empty-state">
       <h2>Your watchlist is empty</h2>
       <p>Add movies from the details page to see them here.</p>
     </div>
-  }
+  } @else {
+    <div class="tabs">
+      <button [class.active]="activeFilter() === 'all'" (click)="activeFilter.set('all')">
+        All ({{ countByStatus('all') }})
+      </button>
+      @for (s of statuses; track s.value) {
+        <button [class.active]="activeFilter() === s.value" (click)="activeFilter.set(s.value)">
+          {{ s.label }} ({{ countByStatus(s.value) }})
+        </button>
+      }
+    </div>
 
-  @if (!loading && !error && items.length > 0) {
+    @if (actionError()) {
+      <p class="error-text">{{ actionError() }}</p>
+    }
+
     <div class="watchlist-list">
-      @for (item of items; track item.id) {
+      @for (item of filteredItems(); track item.id) {
         <div class="watchlist-card">
           <img
             class="watchlist-poster"
-            [src]="item.movie_poster || 'https://via.placeholder.com/140x200?text=No+Image'"
+            [src]="item.movie_poster || '/no-poster.svg'"
             [alt]="item.movie_title"
           />
 
           <div class="watchlist-info">
-            <h3>{{ item.movie_title }}</h3>
+            <h3><a [routerLink]="['/movies', item.movie]">{{ item.movie_title }}</a></h3>
             <p class="meta">Year: {{ item.movie_year }}</p>
             <p class="meta">Rating: {{ item.movie_rating | rating }}</p>
-            <p class="status">Status: {{ item.status }}</p>
             <p class="date">Added: {{ item.added_at | date:'mediumDate' }}</p>
+
+            <div class="actions">
+              <label class="status-label">
+                Status:
+                <select #statusSelect (change)="changeStatus(item, statusSelect)">
+                  @for (s of statuses; track s.value) {
+                    <option [value]="s.value" [selected]="s.value === item.status">{{ s.label }}</option>
+                  }
+                </select>
+              </label>
+
+              <button class="remove-btn" (click)="remove(item)">Remove</button>
+            </div>
           </div>
         </div>
+      } @empty {
+        <p class="info-text">No movies with this status.</p>
       }
     </div>
   }

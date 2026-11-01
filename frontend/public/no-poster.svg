@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+  <rect width="300" height="450" fill="#0b1224"/>
+  <rect x="110" y="165" width="80" height="60" rx="8" fill="none" stroke="#475569" stroke-width="6"/>
+  <circle cx="150" cy="195" r="14" fill="none" stroke="#475569" stroke-width="6"/>
+  <text x="150" y="270" font-family="Arial, sans-serif" font-size="20" fill="#7f8da6" text-anchor="middle">No poster</text>
+</svg>

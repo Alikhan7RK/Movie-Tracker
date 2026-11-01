@@ -2,16 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '../core/api.config';
-
-export interface Review {
-  id: number;
-  user: string;
-  movie: number;
-  movie_title: string;
-  text: string;
-  stars: number;
-  created_at: string;
-}
+import { Review } from '../models/review.model';
 
 @Injectable({
   providedIn: 'root'
@@ -21,15 +12,21 @@ export class ReviewService {
 
   constructor(private http: HttpClient) {}
 
-  getReviews(): Observable<Review[]> {
-    return this.http.get<Review[]>(this.apiUrl);
+  // Reviews of one movie (public, no login needed)
+  getReviews(movieId: number): Observable<Review[]> {
+    return this.http.get<Review[]>(this.apiUrl, { params: { movie: movieId } });
   }
 
+  // Creates a review, or updates it if this user already reviewed the movie
   addReview(movieId: number, text: string, stars: number): Observable<Review> {
     return this.http.post<Review>(this.apiUrl, {
       movie: movieId,
       text,
       stars
     });
+  }
+
+  deleteReview(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}${id}/`);
   }
 }

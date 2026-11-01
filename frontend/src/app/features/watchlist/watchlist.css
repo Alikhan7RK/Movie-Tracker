@@ -44,16 +44,77 @@
   font-size: 22px;
 }
 
+.watchlist-info h3 a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.watchlist-info h3 a:hover {
+  color: #c084fc;
+}
+
 .meta,
-.status,
 .date {
   margin: 0;
   color: #b9c2d0;
 }
 
-.status {
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tabs button {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid #26324a;
+  background: #121a2a;
+  color: #b9c2d0;
+  cursor: pointer;
+}
+
+.tabs button.active {
+  background: #7c3aed;
+  border-color: #7c3aed;
+  color: #ffffff;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.status-label {
   color: #c084fc;
   font-weight: 600;
+}
+
+.status-label select {
+  margin-left: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #26324a;
+  background: #0f172a;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+.remove-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid #f87171;
+  background: transparent;
+  color: #f87171;
+  cursor: pointer;
+}
+
+.remove-btn:hover {
+  background: rgba(248, 113, 113, 0.12);
 }
 
 .info-text {

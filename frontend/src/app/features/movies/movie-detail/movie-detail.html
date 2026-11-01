@@ -11,9 +11,7 @@
 } @else if (movie(); as movie) {
   <div class="detail">
     <div class="top">
-      @if (movie.poster_url) {
-        <img class="poster" [src]="movie.poster_url" [alt]="movie.title" />
-      }
+      <img class="poster" [src]="movie.poster_url || '/no-poster.svg'" [alt]="movie.title" />
 
       <div class="info">
         <h1>{{ movie.title }}</h1>
@@ -36,33 +34,73 @@
             <p><span>Duration:</span> {{ movie.duration }} min</p>
           }
         </div>
-        <button class="watchlist-btn" (click)="addToWatchlist()">
-          Add to Watchlist
-        </button>
+
+        @if (!isLoggedIn) {
+          <p class="hint"><a routerLink="/login">Log in</a> to add this movie to your watchlist.</p>
+        } @else if (watchlistItem(); as item) {
+          <p class="in-watchlist">
+            In your watchlist: <strong>{{ statusLabel(item.status) }}</strong>
+            · <a routerLink="/watchlist">Manage</a>
+          </p>
+        } @else {
+          <button class="watchlist-btn" (click)="addToWatchlist()">
+            Add to Watchlist
+          </button>
+        }
+
+        @if (watchlistMessage(); as msg) {
+          <p class="message" [class.error]="msg.type === 'error'">{{ msg.text }}</p>
+        }
       </div>
     </div>
 
     <div class="review-section">
-      <h2>Leave a review</h2>
+      @if (isLoggedIn) {
+        <h2>{{ myReview() ? 'Update your review' : 'Leave a review' }}</h2>
 
-      <div class="stars">
-        @for (star of [1,2,3,4,5]; track star) {
-          <span (click)="setRating(star)" [class.active]="star <= rating">★</span>
+        <div class="stars">
+          @for (star of [1,2,3,4,5]; track star) {
+            <span (click)="setRating(star)" [class.active]="star <= rating">★</span>
+          }
+        </div>
+
+        <textarea [(ngModel)]="comment" placeholder="Write your comment..."></textarea>
+
+        <button (click)="submitReview()" [disabled]="submitting()">
+          {{ submitting() ? 'Saving...' : 'Submit' }}
+        </button>
+
+        @if (reviewMessage(); as msg) {
+          <p class="message" [class.error]="msg.type === 'error'">{{ msg.text }}</p>
         }
-      </div>
-
-      <textarea [(ngModel)]="comment" placeholder="Write your comment..."></textarea>
-
-      <button (click)="addComment()">Submit</button>
+      } @else {
+        <p class="hint"><a routerLink="/login">Log in</a> to leave a review.</p>
+      }
 
       <div class="comments">
-        <h3>Comments</h3>
+        <h3>Reviews ({{ reviews().length }})</h3>
 
-        @for (c of comments; track c) {
+        @if (reviewsError()) {
+          <p class="message error">{{ reviewsError() }}</p>
+        }
+
+        @for (review of reviews(); track review.id) {
           <div class="comment">
-            <span class="comment-rating">⭐ {{ c.rating }}</span>
-            <p>{{ c.text }}</p>
+            <div class="comment-header">
+              <span class="comment-user">{{ review.user }}</span>
+              <span class="comment-date">{{ review.created_at | date:'mediumDate' }}</span>
+            </div>
+            <span class="comment-rating">{{ starsText(review.stars) }}</span>
+            <p>{{ review.text }}</p>
+
+            @if (review.user === username) {
+              <button class="delete-review" (click)="deleteReview(review)">Delete my review</button>
+            }
           </div>
+        } @empty {
+          @if (!reviewsError()) {
+            <p class="hint">No reviews yet. Be the first!</p>
+          }
         }
       </div>
     </div>

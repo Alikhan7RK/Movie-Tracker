@@ -19,7 +19,7 @@ Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI
 - Movie rating is out of 10; always display it with the `rating` pipe (`shared/rating.pipe.ts`) -> "★ 8.8/10".
 - No new heavy dependencies (no Angular Material, no NgRx) unless asked.
 - After backend model changes: `python manage.py makemigrations && python manage.py migrate`.
-- Verify work: `python manage.py check`, `python manage.py test movies`, `ng build`.
+- Verify work: `python manage.py check`, `python manage.py test movies`, `ng build`, `ng test --watch=false`.
 
 ## Known gaps / bugs (the "finish the project" list)
 ### Done
@@ -48,8 +48,12 @@ Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI
 10. ~~UX polish~~ — DONE: no `alert()` (inline messages), local placeholder `public/no-poster.svg`, rating "★ x.x/10" via the
     `rating` pipe, `@if` everywhere, watchlist + profile pages use signals.
 
-### Still open
-11. **Tests:** `backend/movies/tests.py` is empty. Add APITestCase tests for register/login, movies CRUD permissions, reviews, watchlist.
-    Angular `.spec.ts` files are probably stale after refactors — fix or keep them minimal so `ng test` passes
-    (movie-card/list/detail/form and watchlist specs were updated with HttpClient/router providers).
-12. **README**: replace "(Planned)" sections with the real endpoints and setup steps (incl. migrate + seed_movies).
+11. ~~Tests~~ — DONE: `backend/movies/tests.py` has 39 APITestCase tests (auth/JWT/logout, genres, movie permissions + validation,
+    reviews + rating + fallback, watchlist ownership, seed_movies). Angular: all specs pass with `ng test --watch=false` (Vitest),
+    incl. unit tests for the rating pipe and the YouTube helper.
+12. ~~README~~ — DONE: features, setup (migrate, createsuperuser, seed_movies), all endpoints, project structure.
+
+### Notes
+- Vitest finds no test files when the project path contains brackets (e.g. `Movie-Tracker-main (2)`): run `ng test` from a path
+  without `(` `)` (a clone, or a junction/symlink to the folder).
+- Every new backend behaviour gets a test in `movies/tests.py`; every new component gets a spec with the providers it needs.

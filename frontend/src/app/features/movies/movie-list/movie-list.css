@@ -43,7 +43,7 @@
 
 .toolbar {
   display: grid;
-  grid-template-columns: 1fr 200px 200px;
+  grid-template-columns: 1fr 180px 160px 200px;
   gap: 16px;
   margin-bottom: 18px;
 }
@@ -137,6 +137,49 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
+}
+
+.result-count {
+  margin: 0 0 12px;
+  color: #8090ab;
+  font-size: 13px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.pagination button {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(119, 135, 161, 0.14);
+  background: rgba(13, 23, 43, 0.92);
+  color: #e2e8f0;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  border-color: #7c3aed;
+}
+
+.pagination button.active {
+  background: #7c3aed;
+  border-color: #7c3aed;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .state-message {

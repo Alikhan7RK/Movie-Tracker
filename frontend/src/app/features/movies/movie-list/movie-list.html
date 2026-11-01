@@ -13,26 +13,36 @@
       <span class="search-icon">⌕</span>
       <input
         type="text"
-        placeholder="Search movies..."
+        placeholder="Search by title, director or actor..."
         [(ngModel)]="search"
+        (ngModelChange)="onSearchChange($event)"
       />
     </div>
 
     <div class="filter-box">
-      <select [(ngModel)]="selectedGenre">
-        <option value="">Filter by Genre</option>
+      <select [(ngModel)]="selectedGenre" (ngModelChange)="onFiltersChange()">
+        <option value="">All genres</option>
         @for (genre of genres(); track genre.id) {
-          <option [value]="genre.name">{{ genre.name }}</option>
+          <option [ngValue]="genre.id">{{ genre.name }}</option>
         }
       </select>
       <span class="arrow">⌄</span>
     </div>
 
     <div class="filter-box">
-      <select [(ngModel)]="selectedType">
+      <select [(ngModel)]="selectedType" (ngModelChange)="onFiltersChange()">
         <option value="">All types</option>
         @for (type of contentTypes; track type.value) {
           <option [value]="type.value">{{ type.label }}</option>
+        }
+      </select>
+      <span class="arrow">⌄</span>
+    </div>
+
+    <div class="filter-box">
+      <select [(ngModel)]="ordering" (ngModelChange)="onFiltersChange()" aria-label="Sort movies">
+        @for (option of orderings; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
         }
       </select>
       <span class="arrow">⌄</span>
@@ -47,12 +57,24 @@
       <button (click)="loadMovies()">Try again</button>
     </div>
   } @else {
+    <p class="result-count">{{ totalCount() }} title{{ totalCount() !== 1 ? 's' : '' }}</p>
+
     <div class="movies-grid">
-      @for (movie of filteredMovies; track movie.id) {
+      @for (movie of movies(); track movie.id) {
         <app-movie-card [movie]="movie"></app-movie-card>
       } @empty {
         <p class="state-message">No movies found.</p>
       }
     </div>
+
+    @if (totalPages() > 1) {
+      <nav class="pagination" aria-label="Pages">
+        <button (click)="goToPage(page() - 1)" [disabled]="page() === 1">‹ Prev</button>
+        @for (n of pageNumbers(); track n) {
+          <button [class.active]="n === page()" (click)="goToPage(n)">{{ n }}</button>
+        }
+        <button (click)="goToPage(page() + 1)" [disabled]="page() === totalPages()">Next ›</button>
+      </nav>
+    }
   }
 </div>

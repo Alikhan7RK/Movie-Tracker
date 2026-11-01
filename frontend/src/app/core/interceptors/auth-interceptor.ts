@@ -1,12 +1,24 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { catchError, throwError } from 'rxjs';
+import { Observable, catchError, finalize, shareReplay, switchMap, throwError } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
+
+// These requests never get a token and never trigger a token refresh
+const PUBLIC_URLS = ['/api/login/', '/api/register/', '/api/token/refresh/'];
+
+// If several requests get a 401 at the same time, they all wait for this one refresh request
+let refreshInProgress: Observable<string> | null = null;
+
+function withToken(req: HttpRequest<unknown>, token: string): HttpRequest<unknown> {
+  return req.clone({
+    setHeaders: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+}
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const publicUrls = ['/api/login/', '/api/register/'];
-
-  const isPublicRequest = publicUrls.some((url) => req.url.includes(url));
+  const isPublicRequest = PUBLIC_URLS.some((url) => req.url.includes(url));
 
   if (isPublicRequest) {
     return next(req);
@@ -18,26 +30,32 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  const router = inject(Router);
+  const authService = inject(AuthService);
 
-  const cloned = req.clone({
-    setHeaders: {
-      Authorization: `Bearer ${token}`
-    }
-  });
-
-  return next(cloned).pipe(
+  return next(withToken(req, token)).pipe(
     catchError((error: HttpErrorResponse) => {
-      // 401 while we sent a token = token expired or invalid:
-      // log the user out locally and send them to the login page
-      if (error.status === 401) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('username');
-        localStorage.removeItem('is_staff');
-        router.navigate(['/login']);
+      if (error.status !== 401) {
+        return throwError(() => error);
       }
-      return throwError(() => error);
+
+      // 401 while we sent a token = the access token expired (or is invalid).
+      // Get a new one with the refresh token and send the original request once more.
+      if (!refreshInProgress) {
+        refreshInProgress = authService.refreshAccessToken().pipe(
+          finalize(() => (refreshInProgress = null)),
+          shareReplay(1)
+        );
+      }
+
+      return refreshInProgress.pipe(
+        // The refresh token is also expired or was blacklisted by logout: now really log out
+        catchError(() => {
+          authService.clearSession('/login');
+          return throwError(() => error);
+        }),
+        // The retry goes straight to the next handler, so a second 401 cannot start another refresh
+        switchMap((newToken) => next(withToken(req, newToken)))
+      );
     })
   );
 };

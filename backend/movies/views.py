@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
@@ -9,14 +10,20 @@ from django.contrib.auth.models import User
 
 
 from .models import Genre, Movie, Review, Watchlist
+from .pagination import MoviePagination
 from .serializers import (
     RegisterSerializer,
     LoginSerializer,
+    ProfileUpdateSerializer,
+    ChangePasswordSerializer,
     GenreSerializer,
     MovieSerializer,
     ReviewSerializer,
     WatchlistSerializer,
 )
+
+# Allowed values for /api/movies/?ordering= ('-' = descending)
+MOVIE_ORDERING_FIELDS = ['rating', '-rating', 'year', '-year', 'title', '-title', 'created_at', '-created_at']
 
 
 @api_view(['POST'])
@@ -67,9 +74,16 @@ def login_view(request):
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
+@api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def profile_view(request):
+    # PATCH /api/profile/ {"username": ..., "email": ...} -> change your own username / email
+    if request.method == 'PATCH':
+        serializer = ProfileUpdateSerializer(request.user, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+
     reviews = Review.objects.filter(user=request.user).select_related('movie').order_by('-created_at')
     reviews_data = [
         {
@@ -92,6 +106,19 @@ def profile_view(request):
         },
         status=status.HTTP_200_OK
     )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password_view(request):
+    serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+
+    if serializer.is_valid():
+        request.user.set_password(serializer.validated_data['new_password'])
+        request.user.save()
+        return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -119,9 +146,44 @@ class MovieListCreateView(APIView):
         return [IsAdminUser()]
 
     def get(self, request):
-        movies = Movie.objects.all().order_by('-created_at')
-        serializer = MovieSerializer(movies, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        movies = Movie.objects.prefetch_related('genres')
+        params = request.query_params
+
+        # ?search=nolan -> title, director or actors contain the text
+        search = params.get('search', '').strip()
+        if search:
+            movies = movies.filter(
+                Q(title__icontains=search) | Q(director__icontains=search) | Q(actors__icontains=search)
+            )
+
+        # ?genre=3 -> only movies with genre id 3
+        genre = params.get('genre')
+        if genre:
+            if not genre.isdigit():
+                return Response({'error': 'genre must be a genre id'}, status=status.HTTP_400_BAD_REQUEST)
+            movies = movies.filter(genres__id=genre)
+
+        # ?content_type=anime
+        content_type = params.get('content_type')
+        if content_type:
+            if content_type not in dict(Movie.CONTENT_TYPES):
+                return Response({'error': 'Unknown content_type'}, status=status.HTTP_400_BAD_REQUEST)
+            movies = movies.filter(content_type=content_type)
+
+        # ?ordering=-rating -> best first; no ordering -> newest added first
+        ordering = params.get('ordering') or '-created_at'
+        if ordering not in MOVIE_ORDERING_FIELDS:
+            return Response(
+                {'error': f"ordering must be one of: {', '.join(MOVIE_ORDERING_FIELDS)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        # 'id' as a tie-breaker, so movies with the same rating/year keep a stable order between pages
+        movies = movies.order_by(ordering, 'id')
+
+        paginator = MoviePagination()
+        page = paginator.paginate_queryset(movies, request, view=self)
+        serializer = MovieSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
         serializer = MovieSerializer(data=request.data)

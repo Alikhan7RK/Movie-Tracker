@@ -1,6 +1,7 @@
 # Movie Tracker (CineTrack) — project notes for Claude Code
 
-University Web Development course project (KBTU). Team: Ryskulov Alikhan, Assylbek Manarbek, Kenzhetayev Kaisar.
+Started as a KBTU Web Development team project (Ryskulov Alikhan, Assylbek Manarbek, Kenzhetayev Kaisar);
+now Alikhan's solo project, developed further along the Roadmap below.
 Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI. README.md lists the promised features.
 
 ## Stack & how to run
@@ -17,6 +18,11 @@ Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI
 - Backend: keep APIView/@api_view style (course requirement is to show both FBV and CBV), serializers in `serializers.py`.
 - Movie writes (POST/PUT/DELETE) are admin-only (`is_staff`) — decided, keep it. Frontend checks `AuthService.isAdmin()`.
 - Movie rating is out of 10; always display it with the `rating` pipe (`shared/rating.pipe.ts`) -> "★ 8.8/10".
+- `GET /api/movies/` is paginated (`MoviePagination`, 12/page): `{count, total_pages, next, previous, results}`.
+  Search/filter/sort happen on the backend (`search`, `genre` id, `content_type`, `ordering` from `MOVIE_ORDERING_FIELDS`);
+  never filter movies client-side. Frontend: `MovieService.getMovies(query)` -> `MoviePage`.
+- Auth: on 401 the interceptor calls `AuthService.refreshAccessToken()` (`POST /api/token/refresh/`) once and retries;
+  only if refresh fails does it `clearSession('/login')`. Requests in `PUBLIC_URLS` never get a token or a refresh.
 - No new heavy dependencies (no Angular Material, no NgRx) unless asked.
 - After backend model changes: `python manage.py makemigrations && python manage.py migrate`.
 - Verify work: `python manage.py check`, `python manage.py test movies`, `ng build`, `ng test --watch=false`.
@@ -48,10 +54,29 @@ Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI
 10. ~~UX polish~~ — DONE: no `alert()` (inline messages), local placeholder `public/no-poster.svg`, rating "★ x.x/10" via the
     `rating` pipe, `@if` everywhere, watchlist + profile pages use signals.
 
-11. ~~Tests~~ — DONE: `backend/movies/tests.py` has 39 APITestCase tests (auth/JWT/logout, genres, movie permissions + validation,
+11. ~~Tests~~ — DONE: `backend/movies/tests.py` has APITestCase tests (66 after Stage 1) (auth/JWT/logout, genres, movie permissions + validation,
     reviews + rating + fallback, watchlist ownership, seed_movies). Angular: all specs pass with `ng test --watch=false` (Vitest),
     incl. unit tests for the rating pipe and the YouTube helper.
 12. ~~README~~ — DONE: features, setup (migrate, createsuperuser, seed_movies), all endpoints, project structure.
+
+## Roadmap
+### Stage 1 — DONE
+- ~~Auto token refresh~~ — interceptor refreshes on 401, retries once, shares one refresh between parallel requests.
+- ~~Backend pagination / search / sorting~~ — see Conventions; movie list has debounced search, page buttons, sort dropdown.
+- ~~Edit profile + change password~~ — `PATCH /api/profile/` (username, email), `POST /api/profile/password/`
+  (`old_password`, `new_password`, min 4 like register). Profile page has both forms; username in localStorage is kept in sync.
+
+### Stage 2 — features
+- TMDB import for admins (search TMDB, prefill/create a movie; API key in env, never committed).
+- Stats page with charts (e.g. watchlist by status, reviews per genre, ratings over time).
+- Recommendations (e.g. based on genres of highly rated / completed movies).
+- Custom lists (user-created named lists of movies, beyond the single watchlist).
+
+### Stage 3 — production
+- Deployment: backend on Render + PostgreSQL, frontend on Netlify (settings/secrets from env vars, `API_URL` per environment).
+- GitHub Actions CI: backend tests + `ng build` + `ng test` on every push/PR.
+- Responsive design pass (phones/tablets).
+- Dark/light theme toggle.
 
 ### Notes
 - Vitest finds no test files when the project path contains brackets (e.g. `Movie-Tracker-main (2)`): run `ng test` from a path

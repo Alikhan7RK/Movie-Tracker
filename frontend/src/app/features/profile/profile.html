@@ -14,7 +14,71 @@
         <p class="email">{{ profile.email || 'No email provided' }}</p>
         <p class="reviews-count">{{ profile.reviews.length }} review{{ profile.reviews.length !== 1 ? 's' : '' }}</p>
       </div>
+      <div class="header-actions">
+        @if (!editing()) {
+          <button class="ghost-btn" (click)="startEditing()">Edit profile</button>
+        }
+        <button class="ghost-btn" (click)="togglePasswordForm()">
+          {{ showPasswordForm() ? 'Cancel' : 'Change password' }}
+        </button>
+      </div>
     </div>
+
+    @if (profileMessage()) {
+      <p class="success-text">{{ profileMessage() }}</p>
+    }
+    @if (passwordMessage()) {
+      <p class="success-text">{{ passwordMessage() }}</p>
+    }
+
+    @if (editing()) {
+      <form class="settings-card" (ngSubmit)="saveProfile()">
+        <h2 class="section-title">Edit profile</h2>
+        <label class="field">
+          <span>Username</span>
+          <input type="text" name="username" [(ngModel)]="editUsername" autocomplete="username" required />
+        </label>
+        <label class="field">
+          <span>Email</span>
+          <input type="email" name="email" [(ngModel)]="editEmail" autocomplete="email" />
+        </label>
+        @if (profileError()) {
+          <p class="error-text">{{ profileError() }}</p>
+        }
+        <div class="form-buttons">
+          <button class="primary-btn" type="submit" [disabled]="savingProfile()">
+            {{ savingProfile() ? 'Saving...' : 'Save' }}
+          </button>
+          <button class="ghost-btn" type="button" (click)="cancelEditing()">Cancel</button>
+        </div>
+      </form>
+    }
+
+    @if (showPasswordForm()) {
+      <form class="settings-card" (ngSubmit)="changePassword()">
+        <h2 class="section-title">Change password</h2>
+        <label class="field">
+          <span>Current password</span>
+          <input type="password" name="oldPassword" [(ngModel)]="oldPassword" autocomplete="current-password" />
+        </label>
+        <label class="field">
+          <span>New password</span>
+          <input type="password" name="newPassword" [(ngModel)]="newPassword" autocomplete="new-password" />
+        </label>
+        <label class="field">
+          <span>Repeat new password</span>
+          <input type="password" name="confirmPassword" [(ngModel)]="confirmPassword" autocomplete="new-password" />
+        </label>
+        @if (passwordError()) {
+          <p class="error-text">{{ passwordError() }}</p>
+        }
+        <div class="form-buttons">
+          <button class="primary-btn" type="submit" [disabled]="savingPassword()">
+            {{ savingPassword() ? 'Saving...' : 'Change password' }}
+          </button>
+        </div>
+      </form>
+    }
 
     <div class="section">
       <h2 class="section-title">My Reviews</h2>

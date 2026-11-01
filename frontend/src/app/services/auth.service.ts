@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, of, switchMap, tap } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { API_URL } from '../core/api.config';
 import { UserProfile } from '../models/user.model';
@@ -50,12 +50,40 @@ export class AuthService {
     }
   }
 
-  private clearSession(): void {
+  // Forget the tokens in this browser and go to another page (/movies after logout, /login when the session expired)
+  clearSession(redirectTo = '/movies'): void {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('username');
     localStorage.removeItem('is_staff');
-    this.router.navigate(['/movies']);
+    this.router.navigate([redirectTo]);
+  }
+
+  // Ask the backend for a new access token using the refresh token. Used by the interceptor after a 401.
+  refreshAccessToken(): Observable<string> {
+    const refresh = localStorage.getItem('refresh_token');
+    if (!refresh) {
+      return throwError(() => new Error('No refresh token'));
+    }
+
+    return this.http.post<{ access: string }>(`${this.apiUrl}/token/refresh/`, { refresh }).pipe(
+      tap((res) => localStorage.setItem('access_token', res.access)),
+      map((res) => res.access)
+    );
+  }
+
+  updateProfile(data: { username?: string; email?: string }): Observable<UserProfile> {
+    return this.http.patch<UserProfile>(`${this.apiUrl}/profile/`, data).pipe(
+      // The navbar shows the username from localStorage, so keep it in sync
+      tap((profile) => localStorage.setItem('username', profile.username))
+    );
+  }
+
+  changePassword(oldPassword: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/profile/password/`, {
+      old_password: oldPassword,
+      new_password: newPassword
+    });
   }
 
   isLoggedIn(): boolean {

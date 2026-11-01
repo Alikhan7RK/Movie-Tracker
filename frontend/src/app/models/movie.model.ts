@@ -47,3 +47,32 @@ export interface MoviePayload {
   duration?: number | null;
   genre_ids?: number[];
 }
+
+// One page of GET /api/movies/ (see MoviePagination in backend/movies/pagination.py)
+export interface MoviePage {
+  count: number; // movies matching the filters, on all pages
+  total_pages: number;
+  next: string | null;
+  previous: string | null;
+  results: Movie[];
+}
+
+// Query parameters for GET /api/movies/; empty values are not sent
+export interface MovieQuery {
+  page?: number;
+  search?: string;
+  genre?: number | '';
+  content_type?: ContentType | '';
+  ordering?: string;
+}
+
+// Same values as MOVIE_ORDERING_FIELDS in backend/movies/views.py ('' = backend default, newest added first)
+export const MOVIE_ORDERINGS: { value: string; label: string }[] = [
+  { value: '', label: 'Newest added' },
+  { value: '-rating', label: 'Rating: high to low' },
+  { value: 'rating', label: 'Rating: low to high' },
+  { value: '-year', label: 'Year: newest' },
+  { value: 'year', label: 'Year: oldest' },
+  { value: 'title', label: 'Title: A-Z' },
+  { value: '-title', label: 'Title: Z-A' }
+];

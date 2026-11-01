@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '../core/api.config';
-import { Genre, Movie, MoviePayload } from '../models/movie.model';
+import { Genre, Movie, MoviePage, MoviePayload, MovieQuery } from '../models/movie.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,8 +12,15 @@ export class MovieService {
 
   constructor(private http: HttpClient) {}
 
-  getMovies(): Observable<Movie[]> {
-    return this.http.get<Movie[]>(this.apiUrl);
+  // Search, filters, sorting and pagination are done by the backend, e.g. /api/movies/?search=nolan&page=2
+  getMovies(query: MovieQuery = {}): Observable<MoviePage> {
+    let params = new HttpParams();
+    for (const [name, value] of Object.entries(query)) {
+      if (value !== undefined && value !== null && value !== '') {
+        params = params.set(name, String(value));
+      }
+    }
+    return this.http.get<MoviePage>(this.apiUrl, { params });
   }
 
   getMovie(id: number): Observable<Movie> {

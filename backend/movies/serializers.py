@@ -29,6 +29,24 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
 
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    # ModelSerializer already checks that the new username is free (ignoring the user's own name)
+    class Meta:
+        model = User
+        fields = ['username', 'email']
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True, min_length=4)  # same rule as RegisterSerializer
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Old password is incorrect.")
+        return value
+
+
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre

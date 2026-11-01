@@ -95,6 +95,213 @@ class AuthTests(APITestCase):
         self.assertEqual(second.status_code, status.HTTP_400_BAD_REQUEST)
 
 
+class TokenRefreshTests(APITestCase):
+    def setUp(self):
+        User.objects.create_user('alice', password='secret123')
+        self.tokens = self.client.post('/api/login/', {'username': 'alice', 'password': 'secret123'}).data
+
+    def test_refresh_returns_new_working_access_token(self):
+        response = self.client.post('/api/token/refresh/', {'refresh': self.tokens['refresh']})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {response.data['access']}")
+        self.assertEqual(self.client.get('/api/profile/').status_code, status.HTTP_200_OK)
+
+    def test_refresh_with_invalid_token_fails(self):
+        response = self.client.post('/api/token/refresh/', {'refresh': 'not-a-real-token'})
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_refresh_works_even_with_a_broken_access_token_header(self):
+        # The interceptor calls refresh when the access token has already expired
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer expired-or-broken')
+
+        response = self.client.post('/api/token/refresh/', {'refresh': self.tokens['refresh']})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_refresh_fails_after_logout(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.tokens['access']}")
+        self.client.post('/api/logout/', {'refresh': self.tokens['refresh']})
+        self.client.credentials()
+
+        response = self.client.post('/api/token/refresh/', {'refresh': self.tokens['refresh']})
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class ProfileEditTests(APITestCase):
+    def setUp(self):
+        self.alice = User.objects.create_user('alice', email='alice@example.com', password='secret123')
+        User.objects.create_user('bob', password='secret123')
+
+    def test_profile_edit_needs_login(self):
+        edit = self.client.patch('/api/profile/', {'username': 'x'})
+        password = self.client.post('/api/profile/password/', {'old_password': 'a', 'new_password': 'bbbb'})
+
+        self.assertEqual(edit.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(password.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_user_can_change_username_and_email(self):
+        self.client.force_authenticate(self.alice)
+
+        response = self.client.patch('/api/profile/', {'username': 'alice2', 'email': 'new@example.com'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['username'], 'alice2')
+        self.assertEqual(response.data['email'], 'new@example.com')
+        self.alice.refresh_from_db()
+        self.assertEqual(self.alice.username, 'alice2')
+
+    def test_only_email_can_be_changed(self):
+        self.client.force_authenticate(self.alice)
+
+        response = self.client.patch('/api/profile/', {'email': 'other@example.com'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['username'], 'alice')
+
+    def test_keeping_own_username_is_allowed(self):
+        self.client.force_authenticate(self.alice)
+
+        response = self.client.patch('/api/profile/', {'username': 'alice'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_cannot_take_another_users_username(self):
+        self.client.force_authenticate(self.alice)
+
+        response = self.client.patch('/api/profile/', {'username': 'bob'})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('username', response.data)
+
+    def test_invalid_email_is_rejected(self):
+        self.client.force_authenticate(self.alice)
+
+        response = self.client.patch('/api/profile/', {'email': 'not-an-email'})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('email', response.data)
+
+    def test_change_password_with_correct_old_password(self):
+        self.client.force_authenticate(self.alice)
+
+        response = self.client.post('/api/profile/password/', {'old_password': 'secret123', 'new_password': 'newpass1'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.client.force_authenticate(None)
+        new_login = self.client.post('/api/login/', {'username': 'alice', 'password': 'newpass1'})
+        old_login = self.client.post('/api/login/', {'username': 'alice', 'password': 'secret123'})
+        self.assertEqual(new_login.status_code, status.HTTP_200_OK)
+        self.assertEqual(old_login.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_change_password_with_wrong_old_password_fails(self):
+        self.client.force_authenticate(self.alice)
+
+        response = self.client.post('/api/profile/password/', {'old_password': 'wrong', 'new_password': 'newpass1'})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('old_password', response.data)
+        self.alice.refresh_from_db()
+        self.assertTrue(self.alice.check_password('secret123'))
+
+    def test_change_password_rejects_short_new_password(self):
+        self.client.force_authenticate(self.alice)
+
+        response = self.client.post('/api/profile/password/', {'old_password': 'secret123', 'new_password': '123'})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('new_password', response.data)
+
+
+class MovieListQueryTests(APITestCase):
+    def setUp(self):
+        self.drama = Genre.objects.create(name='Drama')
+        self.action = Genre.objects.create(name='Action')
+
+        inception = make_movie('Inception', '8.8', director='Christopher Nolan', actors='Leonardo DiCaprio')
+        inception.genres.add(self.action)
+
+        godfather = make_movie('The Godfather', '9.2', director='Francis Ford Coppola', actors='Al Pacino')
+        godfather.year = 1972
+        godfather.save()
+        godfather.genres.add(self.drama)
+
+        naruto = make_movie('Naruto', '8.0', content_type='anime', actors='Junko Takeuchi')
+        naruto.year = 2002
+        naruto.save()
+        naruto.genres.add(self.action, self.drama)
+
+    def titles(self, query=''):
+        response = self.client.get(f'/api/movies/{query}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        return [m['title'] for m in response.data['results']]
+
+    def test_list_is_paginated_by_12(self):
+        for i in range(14):
+            make_movie(f'Extra {i}')
+
+        first = self.client.get('/api/movies/')
+        second = self.client.get('/api/movies/?page=2')
+
+        self.assertEqual(first.data['count'], 17)
+        self.assertEqual(first.data['total_pages'], 2)
+        self.assertEqual(len(first.data['results']), 12)
+        self.assertIsNotNone(first.data['next'])
+        self.assertIsNone(first.data['previous'])
+        self.assertEqual(len(second.data['results']), 5)
+        self.assertIsNone(second.data['next'])
+
+    def test_page_out_of_range_returns_404(self):
+        self.assertEqual(self.client.get('/api/movies/?page=99').status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_default_order_is_newest_first(self):
+        self.assertEqual(self.titles(), ['Naruto', 'The Godfather', 'Inception'])
+
+    def test_search_by_title_is_case_insensitive(self):
+        self.assertEqual(self.titles('?search=incep'), ['Inception'])
+
+    def test_search_by_director(self):
+        self.assertEqual(self.titles('?search=nolan'), ['Inception'])
+
+    def test_search_by_actor(self):
+        self.assertEqual(self.titles('?search=pacino'), ['The Godfather'])
+
+    def test_search_with_no_match_returns_empty_page(self):
+        response = self.client.get('/api/movies/?search=zzz')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 0)
+        self.assertEqual(response.data['results'], [])
+
+    def test_filter_by_genre(self):
+        self.assertEqual(sorted(self.titles(f'?genre={self.drama.id}')), ['Naruto', 'The Godfather'])
+
+    def test_filter_by_content_type(self):
+        self.assertEqual(self.titles('?content_type=anime'), ['Naruto'])
+
+    def test_filters_can_be_combined(self):
+        self.assertEqual(self.titles(f'?genre={self.action.id}&content_type=movie'), ['Inception'])
+
+    def test_ordering_by_rating(self):
+        self.assertEqual(self.titles('?ordering=-rating'), ['The Godfather', 'Inception', 'Naruto'])
+        self.assertEqual(self.titles('?ordering=rating'), ['Naruto', 'Inception', 'The Godfather'])
+
+    def test_ordering_by_year(self):
+        self.assertEqual(self.titles('?ordering=year'), ['The Godfather', 'Naruto', 'Inception'])
+        self.assertEqual(self.titles('?ordering=-year'), ['Inception', 'Naruto', 'The Godfather'])
+
+    def test_ordering_by_title(self):
+        self.assertEqual(self.titles('?ordering=title'), ['Inception', 'Naruto', 'The Godfather'])
+        self.assertEqual(self.titles('?ordering=-title'), ['The Godfather', 'Naruto', 'Inception'])
+
+    def test_invalid_parameters_return_400(self):
+        for query in ['?ordering=description', '?genre=drama', '?content_type=podcast']:
+            with self.subTest(query=query):
+                self.assertEqual(self.client.get(f'/api/movies/{query}').status_code, status.HTTP_400_BAD_REQUEST)
+
+
 class GenreTests(APITestCase):
     def test_genres_are_public_and_sorted(self):
         Genre.objects.create(name='Drama')
@@ -118,7 +325,7 @@ class MoviePermissionTests(APITestCase):
         detail_response = self.client.get(f'/api/movies/{self.movie.id}/')
 
         self.assertEqual(list_response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(list_response.data), 1)
+        self.assertEqual(list_response.data['count'], 1)
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
         self.assertEqual(detail_response.data['title'], 'Test Movie')
 

@@ -17,11 +17,14 @@ connected through a REST API with **JWT authentication**.
 ### 🔐 Authentication
 * Register, log in and log out (JWT access + refresh tokens; logout blacklists the refresh token)
 * The frontend attaches the token to every request with an HTTP **interceptor**
-* An expired or invalid token logs the user out automatically and redirects to the login page
+* When the access token expires, the interceptor gets a new one with the refresh token and repeats the request,
+  so the user stays logged in. Only if the refresh token is also invalid is the user logged out and sent to the login page
 * Route **guards**: `authGuard` (watchlist, profile) and `adminGuard` (add/edit movie pages)
 
 ### 🎬 Movies
-* Movie list loaded from the API, with search, **genre filter** and **type filter** (Movie / Series / Cartoon / Anime)
+* Movie list loaded from the API, **12 per page** with page buttons
+* **Search** by title, director or actor (waits until you stop typing), **genre** and **type** filters
+  (Movie / Series / Cartoon / Anime) and **sorting** by rating, year or title. All of it is done by the backend
 * Movie page with poster, genres, rating, year, country, director, actors, duration and an embedded **YouTube trailer**
 * **Admins** (`is_staff` users) can add, edit and delete movies:
   one shared form for create/edit with validation messages, genre checkboxes and a live poster preview
@@ -40,6 +43,7 @@ connected through a REST API with **JWT authentication**.
 
 ### 👤 Profile
 * Username, email and a list of your reviews
+* Edit your username and email; change your password (the current password is required)
 
 ---
 
@@ -87,10 +91,11 @@ The API address is set in one place: `frontend/src/app/core/api.config.ts`.
 
 ```bash
 cd backend
-python manage.py test movies        # 39 API tests: auth, movie permissions, reviews + rating, watchlist, seed
+python manage.py test movies        # 66 API tests: auth + token refresh, profile editing, movie search/filters/
+                                    # sorting/pagination, permissions, reviews + rating, watchlist, seed
 
 cd frontend
-ng test --watch=false               # component, pipe and helper tests (Vitest)
+ng test --watch=false               # component, interceptor, pipe and helper tests (Vitest)
 ```
 
 > **Note:** Vitest cannot find test files if the project path contains brackets, e.g. `Movie-Tracker-main (2)`.
@@ -110,19 +115,35 @@ All endpoints start with `/api/`. Protected endpoints need the header `Authoriza
 |---|---|---|---|
 | POST | `/api/register/` | 🌐 | Create an account (`username`, `password`, optional `email`) |
 | POST | `/api/login/` | 🌐 | Returns `access` and `refresh` tokens |
+| POST | `/api/token/refresh/` | 🌐 | Send `refresh`, get a new `access` token (fails after logout) |
 | POST | `/api/logout/` | 🔒 | Blacklists the given `refresh` token |
 | GET | `/api/profile/` | 🔒 | Current user: `username`, `email`, `is_staff`, `reviews` |
+| PATCH | `/api/profile/` | 🔒 | Change your `username` and/or `email`; returns the updated profile |
+| POST | `/api/profile/password/` | 🔒 | Change password (`old_password`, `new_password`, min. 4 characters) |
 
 ### Movies and genres
 
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | GET | `/api/genres/` | 🌐 | All genres, sorted by name |
-| GET | `/api/movies/` | 🌐 | All movies (newest first) |
+| GET | `/api/movies/` | 🌐 | Movies, 12 per page (see the query parameters below) |
 | POST | `/api/movies/` | 👑 | Create a movie (`genre_ids` optional) |
 | GET | `/api/movies/{id}/` | 🌐 | One movie |
 | PUT | `/api/movies/{id}/` | 👑 | Update a movie |
 | DELETE | `/api/movies/{id}/` | 👑 | Delete a movie |
+
+Query parameters for `GET /api/movies/` (all optional, can be combined):
+
+| Parameter | Example | Meaning |
+|---|---|---|
+| `page` | `?page=2` | Page number (12 movies per page) |
+| `search` | `?search=nolan` | Title, director or actors contain the text (case-insensitive) |
+| `genre` | `?genre=3` | Genre id (from `/api/genres/`) |
+| `content_type` | `?content_type=anime` | `movie`, `series`, `cartoon` or `anime` |
+| `ordering` | `?ordering=-rating` | `rating`, `year`, `title` or `created_at`; `-` in front = descending. Default `-created_at` (newest added) |
+
+The response looks like `{"count": 17, "total_pages": 2, "next": "...", "previous": null, "results": [...]}`.
+Unknown `genre` / `content_type` / `ordering` values return 400, a page that doesn't exist returns 404.
 
 `rating` is read-only (calculated by the server). Admins set `base_rating` (0–10). `year` must be between 1888 and the current year + 5.
 
@@ -155,6 +176,7 @@ Movie-Tracker/
 │   │   ├── models.py           # Genre, Movie, Review, Watchlist
 │   │   ├── serializers.py      # DRF serializers + validation
 │   │   ├── views.py            # function views (@api_view) and class views (APIView)
+│   │   ├── pagination.py       # MoviePagination (12 per page + total_pages)
 │   │   ├── urls.py             # all /api/ routes
 │   │   ├── tests.py            # API tests
 │   │   ├── migrations/

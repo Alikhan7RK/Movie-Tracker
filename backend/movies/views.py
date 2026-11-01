@@ -127,8 +127,9 @@ class MovieListCreateView(APIView):
         serializer = MovieSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            movie = serializer.save()
+            movie.update_rating()  # new movie has no reviews -> rating = base_rating
+            return Response(MovieSerializer(movie).data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -161,8 +162,9 @@ class MovieDetailView(APIView):
 
         serializer = MovieSerializer(movie, data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            movie = serializer.save()
+            movie.update_rating()  # base_rating may have changed
+            return Response(MovieSerializer(movie).data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

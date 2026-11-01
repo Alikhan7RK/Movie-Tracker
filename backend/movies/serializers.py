@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import Genre, Movie, Review, Watchlist
@@ -51,6 +53,7 @@ class MovieSerializer(serializers.ModelSerializer):
             'description',
             'year',
             'rating',
+            'base_rating',
             'trailer_url',
             'poster_url',
             'content_type',
@@ -62,6 +65,19 @@ class MovieSerializer(serializers.ModelSerializer):
             'genre_ids',
             'created_at',
         ]
+        # rating is calculated by the server (Movie.update_rating), admins set base_rating instead
+        read_only_fields = ['rating']
+
+    def validate_year(self, value):
+        max_year = date.today().year + 5
+        if value < 1888 or value > max_year:
+            raise serializers.ValidationError(f"Year must be between 1888 and {max_year}.")
+        return value
+
+    def validate_base_rating(self, value):
+        if value < 0 or value > 10:
+            raise serializers.ValidationError("Rating must be between 0 and 10.")
+        return value
 
 
 class ReviewSerializer(serializers.ModelSerializer):

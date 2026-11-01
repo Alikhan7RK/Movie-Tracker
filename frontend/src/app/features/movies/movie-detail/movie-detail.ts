@@ -1,9 +1,11 @@
 import { Component, computed, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../../../shared/navbar/navbar';
 import { RatingPipe } from '../../../shared/rating.pipe';
+import { getYoutubeId, youtubeEmbedUrl } from '../../../shared/youtube';
 import { MovieService } from '../../../services/movie.service';
 import { ReviewService } from '../../../services/review.service';
 import { WatchlistService } from '../../../services/watchlist.service';
@@ -45,7 +47,21 @@ export class MovieDetail {
   comment = '';
 
   isLoggedIn = false;
+  isAdmin = false;
   username = '';
+
+  // Admin delete: first click shows "Are you sure?", second click really deletes
+  confirmingDelete = signal(false);
+  deleting = signal(false);
+  deleteError = signal('');
+
+  // Safe YouTube embed link for the iframe, or null if there is no YouTube trailer
+  trailerEmbedUrl = computed<SafeResourceUrl | null>(() => {
+    const id = getYoutubeId(this.movie()?.trailer_url);
+    // Angular blocks unknown URLs in iframes. We only mark as trusted a URL we built ourselves
+    // from a checked 11-character video id, so nothing from the user goes into it directly.
+    return id ? this.sanitizer.bypassSecurityTrustResourceUrl(youtubeEmbedUrl(id)) : null;
+  });
 
   // The current user's own review of this movie (if any)
   myReview = computed(() => this.reviews().find(r => r.user === this.username) ?? null);
@@ -55,12 +71,15 @@ export class MovieDetail {
     private movieService: MovieService,
     private reviewService: ReviewService,
     private watchlistService: WatchlistService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit() {
     this.movieId = Number(this.route.snapshot.paramMap.get('id'));
     this.isLoggedIn = this.authService.isLoggedIn();
+    this.isAdmin = this.authService.isAdmin();
     this.username = this.authService.getUsername();
 
     this.loadMovie();
@@ -170,6 +189,20 @@ export class MovieDetail {
       },
       error: () => {
         this.reviewMessage.set({ type: 'error', text: 'Failed to delete your review.' });
+      }
+    });
+  }
+
+  deleteMovie() {
+    this.deleting.set(true);
+    this.deleteError.set('');
+
+    this.movieService.deleteMovie(this.movieId).subscribe({
+      next: () => this.router.navigate(['/movies']),
+      error: (err) => {
+        this.deleting.set(false);
+        this.confirmingDelete.set(false);
+        this.deleteError.set(err.status === 403 ? 'Only admins can delete movies.' : 'Failed to delete the movie.');
       }
     });
   }

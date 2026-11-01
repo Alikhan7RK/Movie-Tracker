@@ -51,8 +51,45 @@
         @if (watchlistMessage(); as msg) {
           <p class="message" [class.error]="msg.type === 'error'">{{ msg.text }}</p>
         }
+
+        @if (isAdmin) {
+          <div class="admin-actions">
+            @if (!confirmingDelete()) {
+              <a class="admin-btn" [routerLink]="['/movies', movie.id, 'edit']">Edit</a>
+              <button class="admin-btn danger" (click)="confirmingDelete.set(true)">Delete</button>
+            } @else {
+              <span class="confirm-text">Delete "{{ movie.title }}"? This cannot be undone.</span>
+              <button class="admin-btn danger" (click)="deleteMovie()" [disabled]="deleting()">
+                {{ deleting() ? 'Deleting...' : 'Yes, delete' }}
+              </button>
+              <button class="admin-btn" (click)="confirmingDelete.set(false)" [disabled]="deleting()">Cancel</button>
+            }
+          </div>
+          @if (deleteError()) {
+            <p class="message error">{{ deleteError() }}</p>
+          }
+        }
       </div>
     </div>
+
+    @if (trailerEmbedUrl(); as trailerUrl) {
+      <div class="trailer">
+        <h2>Trailer</h2>
+        <div class="trailer-frame">
+          <iframe
+            [src]="trailerUrl"
+            title="Trailer"
+            allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+            referrerpolicy="strict-origin-when-cross-origin"
+          ></iframe>
+        </div>
+      </div>
+    } @else if (movie.trailer_url) {
+      <p class="trailer-link">
+        <a [href]="movie.trailer_url" target="_blank" rel="noopener noreferrer">Watch the trailer ↗</a>
+      </p>
+    }
 
     <div class="review-section">
       @if (isLoggedIn) {

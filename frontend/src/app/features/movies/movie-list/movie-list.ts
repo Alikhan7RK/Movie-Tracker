@@ -1,21 +1,27 @@
 import { CommonModule } from '@angular/common';
 import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Navbar } from '../../../shared/navbar/navbar';
 import { MovieCard } from '../../../shared/movie-card/movie-card';
 import { MovieService } from '../../../services/movie.service';
-import { Genre, Movie } from '../../../models/movie.model';
+import { AuthService } from '../../../services/auth.service';
+import { CONTENT_TYPES, Genre, Movie } from '../../../models/movie.model';
 
 @Component({
   selector: 'app-movie-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, Navbar, MovieCard],
+  imports: [CommonModule, FormsModule, RouterLink, Navbar, MovieCard],
   templateUrl: './movie-list.html',
   styleUrl: './movie-list.css'
 })
 export class MovieList {
   search = '';
   selectedGenre = '';
+  selectedType = '';
+
+  contentTypes = CONTENT_TYPES;
+  isAdmin = false;
 
   // Signals: when their value changes, Angular redraws the page
   // (this app has no zone.js, so plain fields set inside subscribe() would not update the view)
@@ -24,9 +30,10 @@ export class MovieList {
   loading = signal(true);
   error = signal('');
 
-  constructor(private movieService: MovieService) {}
+  constructor(private movieService: MovieService, private authService: AuthService) {}
 
   ngOnInit() {
+    this.isAdmin = this.authService.isAdmin();
     this.loadMovies();
 
     // If genres fail to load, the page still works, the filter is just empty
@@ -60,7 +67,8 @@ export class MovieList {
 
     return this.movies().filter(m =>
       m.title.toLowerCase().includes(search) &&
-      (this.selectedGenre ? m.genres.some(g => g.name === this.selectedGenre) : true)
+      (this.selectedGenre ? m.genres.some(g => g.name === this.selectedGenre) : true) &&
+      (this.selectedType ? m.content_type === this.selectedType : true)
     );
   }
 }

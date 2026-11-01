@@ -22,7 +22,10 @@ class Movie(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     year = models.PositiveIntegerField()
+    # rating is what users see: average of reviews, or base_rating when there are no reviews
     rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
+    # The movie's original rating (out of 10), set by an admin or by seed_movies
+    base_rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
     trailer_url = models.URLField(blank=True, null=True)
     poster_url = models.URLField(blank=True, null=True)
     content_type = models.CharField(max_length=20, choices=CONTENT_TYPES, default='movie')
@@ -38,9 +41,12 @@ class Movie(models.Model):
 
     def update_rating(self):
         # Rating = average of review stars (1-5) converted to the 10-point scale (stars * 2).
-        # No reviews left -> rating goes back to 0.
+        # No reviews -> fall back to the original base_rating.
         average_stars = self.reviews.aggregate(avg=Avg('stars'))['avg']
-        self.rating = round(average_stars * 2, 1) if average_stars is not None else 0
+        if average_stars is not None:
+            self.rating = round(average_stars * 2, 1)
+        else:
+            self.rating = self.base_rating
         self.save(update_fields=['rating'])
 
 

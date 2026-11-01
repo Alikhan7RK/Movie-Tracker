@@ -119,7 +119,7 @@ class Command(BaseCommand):
                 defaults={
                     'description': data['description'],
                     'year': data['year'],
-                    'rating': data['rating'],
+                    'base_rating': data['rating'],
                     'poster_url': data['poster_url'],
                     'content_type': 'movie',
                     'director': data['director'],
@@ -129,6 +129,9 @@ class Command(BaseCommand):
                 },
             )
             movie.genres.add(genre)
+
+            # rating = average of reviews if there are any, otherwise base_rating
+            movie.update_rating()
 
             if created:
                 created_count += 1

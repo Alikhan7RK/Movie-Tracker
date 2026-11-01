@@ -1,7 +1,12 @@
 <app-navbar></app-navbar>
 
 <div class="page">
-  <h1 class="page-title">Movies</h1>
+  <div class="title-row">
+    <h1 class="page-title">Movies</h1>
+    @if (isAdmin) {
+      <a class="add-btn" routerLink="/movies/new">+ Add movie</a>
+    }
+  </div>
 
   <div class="toolbar">
     <div class="search-box">
@@ -18,6 +23,16 @@
         <option value="">Filter by Genre</option>
         @for (genre of genres(); track genre.id) {
           <option [value]="genre.name">{{ genre.name }}</option>
+        }
+      </select>
+      <span class="arrow">⌄</span>
+    </div>
+
+    <div class="filter-box">
+      <select [(ngModel)]="selectedType">
+        <option value="">All types</option>
+        @for (type of contentTypes; track type.value) {
+          <option [value]="type.value">{{ type.label }}</option>
         }
       </select>
       <span class="arrow">⌄</span>

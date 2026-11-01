@@ -35,11 +35,18 @@ describe('ThemeService', () => {
     expect(localStorage.getItem('theme')).toBe('dark');
   });
 
-  it('ignores an invalid saved value', () => {
+  it('is dark by default when nothing is saved', () => {
+    const service = TestBed.inject(ThemeService);
+
+    expect(service.theme()).toBe('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+  });
+
+  it('ignores an invalid saved value and uses dark', () => {
     localStorage.setItem('theme', 'purple');
 
     const service = TestBed.inject(ThemeService);
 
-    expect(['dark', 'light']).toContain(service.theme());
+    expect(service.theme()).toBe('dark');
   });
 });

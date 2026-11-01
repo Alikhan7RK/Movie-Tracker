@@ -32,8 +32,11 @@ Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI
   Component styles have a 4 kB budget: put reusable styling in styles.css, keep component CSS to layout.
   Look (matches the mockup the user approved): glass surfaces use `--glass-bg/-bg-hover/-border` + `--shadow-card`;
   orange glow = `--glow-accent` (hover) / `--glow-poster`; avatars `--gradient-accent` (`.avatar-dot`); metadata as pills
-  (`.chip`, `.chip-lg`, `.chip-rating` = orange); buttons: primary filled orange, `.btn-outline` orange ("+ Add ..."),
+  (`.chip`, `.chip-rating` = orange); buttons: primary filled orange, `.btn-outline` orange ("+ Add ..."),
   `.btn-danger` red outline; small uppercase orange `.eyebrow` above page titles.
+  Dark is the default theme (OS setting ignored); light only when the user toggles it.
+  The movie-list hero is ALWAYS dark (fixed `--hero-*` tokens, not themed): poster on the right with a masked left edge,
+  dark gradient from the left, short fade into `--color-bg` at the bottom (keep it short or light mode greys the buttons).
 - Theme: `ThemeService` (signal + `localStorage['theme']`) sets `data-theme` on `<html>`; a small script in `index.html` applies it
   before Angular boots (no flash). Breakpoints used: 960px (tablet), 760px (navbar menu button), 600px (phone).
 - After backend model changes: `python manage.py makemigrations && python manage.py migrate`.

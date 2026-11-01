@@ -29,16 +29,13 @@ export class ThemeService {
     }
   }
 
-  // Saved choice first, otherwise follow the operating system setting, otherwise dark
+  // Dark is the default; light only if the user switched to it before
   private initialTheme(): Theme {
     let saved: string | null = null;
     try {
       saved = localStorage.getItem(STORAGE_KEY);
     } catch {}
-    if (saved === 'dark' || saved === 'light') {
-      return saved;
-    }
-    return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    return saved === 'light' ? 'light' : 'dark';
   }
 
   // styles.css switches all colors with [data-theme='light'] / [data-theme='dark'] on <html>

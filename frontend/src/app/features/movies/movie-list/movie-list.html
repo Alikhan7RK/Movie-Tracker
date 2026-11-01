@@ -8,25 +8,25 @@
       }
 
       <div class="hero-inner">
-        <span class="eyebrow">Top rated on CineTrack</span>
+        <span class="hero-eyebrow">Top rated on CineTrack</span>
         <h1 class="hero-title">{{ top.title }}</h1>
 
         <div class="hero-chips">
-          <span class="chip chip-lg chip-rating">{{ top.rating | rating }}</span>
-          <span class="chip chip-lg">{{ top.year }}</span>
-          @if (top.duration) { <span class="chip chip-lg">{{ top.duration }} min</span> }
-          @if (top.genres.length) { <span class="chip chip-lg">{{ top.genres[0].name }}</span> }
+          <span class="chip chip-rating">{{ top.rating | rating }}</span>
+          <span class="chip">{{ top.year }}</span>
+          @if (top.duration) { <span class="chip">{{ top.duration }} min</span> }
+          @if (top.genres.length) { <span class="chip">{{ top.genres[0].name }}</span> }
         </div>
 
         <div class="hero-actions">
           <a class="btn btn-primary" [routerLink]="['/movies', top.id]">View details</a>
           @if (!isLoggedIn) {
-            <a class="btn btn-outline" routerLink="/login">+ Add to watchlist</a>
+            <a class="btn btn-outline" routerLink="/login"><span class="plus">+</span> Add to watchlist</a>
           } @else if (topWatchlistState() === 'added') {
             <a class="btn btn-outline" routerLink="/watchlist">✓ In your watchlist</a>
           } @else {
             <button class="btn btn-outline" (click)="addTopToWatchlist()" [disabled]="topWatchlistState() === 'adding'">
-              + Add to watchlist
+              <span class="plus">+</span> Add to watchlist
             </button>
           }
         </div>

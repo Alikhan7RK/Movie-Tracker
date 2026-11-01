@@ -21,8 +21,8 @@ connected through a REST API with **JWT authentication**.
 | ![Movie list with the top rated movie banner](docs/screenshots/movies-dark.png) | ![Movie page with backdrop header and reviews](docs/screenshots/movie-detail-light.png) |
 | **Watchlist (light)** | **Profile** |
 | ![Watchlist with status tabs](docs/screenshots/watchlist-light.png) | ![Profile with avatar and empty reviews](docs/screenshots/profile-dark.png) |
-| **Sign in** | |
-| ![Sign in page](docs/screenshots/login-dark.png) | |
+| **Movies (light)** | **Sign in** |
+| ![Movie list in the light theme](docs/screenshots/movies-light.png) | ![Sign in page](docs/screenshots/login-dark.png) |
 
 <p>
   <img src="docs/screenshots/movies-phone.png" alt="Movie list on a phone" width="220">

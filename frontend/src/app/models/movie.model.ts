@@ -23,6 +23,7 @@ export interface Movie {
   base_rating: string; // original rating, used when the movie has no reviews
   trailer_url: string | null;
   poster_url: string | null;
+  backdrop_url: string | null; // wide image for banners; empty -> the poster is used
   content_type: ContentType;
   director: string;
   actors: string;
@@ -40,6 +41,7 @@ export interface MoviePayload {
   base_rating?: number;
   trailer_url?: string | null;
   poster_url?: string | null;
+  backdrop_url?: string | null;
   content_type?: ContentType;
   director?: string;
   actors?: string;

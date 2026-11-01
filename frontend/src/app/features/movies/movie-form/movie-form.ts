@@ -16,6 +16,7 @@ interface MovieFormData {
   year: number | null;
   base_rating: number | null;
   poster_url: string;
+  backdrop_url: string;
   trailer_url: string;
   content_type: ContentType;
   director: string;
@@ -47,6 +48,7 @@ export class MovieForm {
     year: null,
     base_rating: null,
     poster_url: '',
+    backdrop_url: '',
     trailer_url: '',
     content_type: 'movie',
     director: '',
@@ -102,6 +104,7 @@ export class MovieForm {
           year: movie.year,
           base_rating: Number(movie.base_rating),
           poster_url: movie.poster_url ?? '',
+          backdrop_url: movie.backdrop_url ?? '',
           trailer_url: movie.trailer_url ?? '',
           content_type: movie.content_type,
           director: movie.director,
@@ -140,6 +143,9 @@ export class MovieForm {
 
     if (f.poster_url.trim() && !this.isValidUrl(f.poster_url)) {
       errors.poster_url = 'Enter a valid link starting with http:// or https://';
+    }
+    if (f.backdrop_url.trim() && !this.isValidUrl(f.backdrop_url)) {
+      errors.backdrop_url = 'Enter a valid link starting with http:// or https://';
     }
     if (f.trailer_url.trim() && !this.isValidUrl(f.trailer_url)) {
       errors.trailer_url = 'Enter a valid link starting with http:// or https://';
@@ -203,6 +209,7 @@ export class MovieForm {
       year: f.year!,
       base_rating: f.base_rating ?? 0,
       poster_url: f.poster_url.trim() || null,
+      backdrop_url: f.backdrop_url.trim() || null,
       trailer_url: f.trailer_url.trim() || null,
       content_type: f.content_type,
       director: f.director.trim(),

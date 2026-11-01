@@ -647,3 +647,43 @@ class CreateAdminTests(APITestCase):
 
         self.assertEqual(User.objects.count(), 0)
         self.assertIn('skipping', out.getvalue())
+
+
+class BackdropTests(APITestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user('admin', password='secret123', is_staff=True)
+        self.new_movie = {'title': 'New', 'description': 'Desc', 'year': 2020}
+
+    def test_admin_can_save_backdrop_url(self):
+        self.client.force_authenticate(self.admin)
+        url = 'https://image.tmdb.org/t/p/w1280/abc.jpg'
+
+        response = self.client.post('/api/movies/', {**self.new_movie, 'backdrop_url': url}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['backdrop_url'], url)
+        self.assertEqual(self.client.get(f"/api/movies/{response.data['id']}/").data['backdrop_url'], url)
+
+    def test_backdrop_is_optional(self):
+        self.client.force_authenticate(self.admin)
+
+        response = self.client.post('/api/movies/', self.new_movie, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNone(response.data['backdrop_url'])
+
+    def test_invalid_backdrop_url_is_rejected(self):
+        self.client.force_authenticate(self.admin)
+
+        response = self.client.post('/api/movies/', {**self.new_movie, 'backdrop_url': 'not a link'}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('backdrop_url', response.data)
+
+    def test_seed_gives_every_movie_a_wide_backdrop(self):
+        call_command('seed_movies', stdout=StringIO())
+
+        for movie in Movie.objects.all():
+            with self.subTest(movie=movie.title):
+                self.assertTrue(movie.backdrop_url.startswith('https://image.tmdb.org/t/p/w1280/'))
+                self.assertNotEqual(movie.backdrop_url, movie.poster_url)

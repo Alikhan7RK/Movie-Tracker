@@ -3,8 +3,8 @@
 @if (topMovie(); as top) {
   @if (page() === 1 && !isFiltering) {
     <section class="hero">
-      @if (top.poster_url) {
-        <div class="hero-bg" aria-hidden="true"><img [src]="top.poster_url" alt="" /></div>
+      @if (backdropImage(top); as image) {
+        <div class="hero-bg" [class.from-poster]="usesPosterAsBackdrop(top)" aria-hidden="true"><img [src]="image" alt="" /></div>
       }
 
       <div class="hero-inner">

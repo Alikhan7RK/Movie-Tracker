@@ -28,6 +28,8 @@ class Movie(models.Model):
     base_rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
     trailer_url = models.URLField(blank=True, null=True)
     poster_url = models.URLField(blank=True, null=True)
+    # Wide (16:9) image for the movie list banner and the movie page background; the poster is used when empty
+    backdrop_url = models.URLField(blank=True, null=True)
     content_type = models.CharField(max_length=20, choices=CONTENT_TYPES, default='movie')
     director = models.CharField(max_length=255, blank=True, default='')
     actors = models.TextField(blank=True, default='')

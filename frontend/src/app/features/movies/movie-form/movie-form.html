@@ -57,6 +57,13 @@
         </label>
 
         <label class="field">
+          <span class="field-label">Backdrop URL (wide image)</span>
+          <input type="url" name="backdrop_url" placeholder="https://image.tmdb.org/t/p/w1280/..." [(ngModel)]="form.backdrop_url" [class.invalid]="fieldError('backdrop_url')" />
+          <small class="hint">Used for the big banner and the movie page background. Empty = the poster is used.</small>
+          @if (fieldError('backdrop_url')) { <small class="field-error">{{ fieldError('backdrop_url') }}</small> }
+        </label>
+
+        <label class="field">
           <span class="field-label">Trailer URL (YouTube)</span>
           <input type="url" name="trailer_url" placeholder="https://www.youtube.com/watch?v=..." [(ngModel)]="form.trailer_url" [class.invalid]="fieldError('trailer_url')" />
           @if (fieldError('trailer_url')) { <small class="field-error">{{ fieldError('trailer_url') }}</small> }

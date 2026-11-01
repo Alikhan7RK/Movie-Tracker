@@ -121,7 +121,7 @@ and `environment.ts` (the deployed backend, used by `ng build`). Services import
 
 ```bash
 cd backend
-python manage.py test movies        # 69 tests: auth + token refresh, profile editing, movie search/filters/
+python manage.py test movies        # 73 tests: auth + token refresh, profile editing, movie search/filters/
                                     # sorting/pagination, permissions, reviews + rating, watchlist, seed
 
 cd frontend
@@ -187,7 +187,8 @@ Query parameters for `GET /api/movies/` (all optional, can be combined):
 The response looks like `{"count": 17, "total_pages": 2, "next": "...", "previous": null, "results": [...]}`.
 Unknown `genre` / `content_type` / `ordering` values return 400, a page that doesn't exist returns 404.
 
-`rating` is read-only (calculated by the server). Admins set `base_rating` (0–10). `year` must be between 1888 and the current year + 5.
+`backdrop_url` (optional) is a wide 16:9 image for the movie list banner and the movie page background;
+when it's empty the poster is used instead. `rating` is read-only (calculated by the server). Admins set `base_rating` (0–10). `year` must be between 1888 and the current year + 5.
 
 ### Reviews
 

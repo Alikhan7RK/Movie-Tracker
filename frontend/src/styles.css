@@ -31,6 +31,7 @@
   --color-on-scrim: #ffffff;      /* text on top of a photo darkened by --color-scrim */
   --color-nav-bg: rgba(16, 19, 23, 0.82);
   --backdrop-opacity: 0.45;
+  --backdrop-wide-opacity: 0.5;
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 10px 28px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.55);
@@ -69,6 +70,7 @@
   --color-on-scrim: #ffffff;
   --color-nav-bg: rgba(244, 242, 238, 0.88);
   --backdrop-opacity: 0.3;
+  --backdrop-wide-opacity: 0.32;
   --shadow-sm: 0 2px 6px rgba(27, 31, 35, 0.08);
   --shadow-md: 0 10px 28px rgba(27, 31, 35, 0.12);
   --shadow-lg: 0 24px 60px rgba(27, 31, 35, 0.18);
@@ -504,6 +506,14 @@ select option {
   filter: blur(18px) saturate(1.25);
   transform: scale(1.15);
   opacity: var(--backdrop-opacity);
+}
+
+/* A real wide backdrop (not the poster): sharper and a bit stronger */
+.backdrop-wide img {
+  object-position: center 25%;
+  filter: blur(3px) saturate(1.1);
+  transform: scale(1.04);
+  opacity: var(--backdrop-wide-opacity);
 }
 
 .backdrop::after {

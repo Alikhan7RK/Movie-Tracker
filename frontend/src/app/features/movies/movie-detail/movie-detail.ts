@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { Navbar } from '../../../shared/navbar/navbar';
 import { RatingPipe } from '../../../shared/rating.pipe';
 import { getYoutubeId, youtubeEmbedUrl } from '../../../shared/youtube';
+import { backdropImage, usesPosterAsBackdrop } from '../../../shared/backdrop';
 import { MovieService } from '../../../services/movie.service';
 import { ReviewService } from '../../../services/review.service';
 import { WatchlistService } from '../../../services/watchlist.service';
@@ -28,6 +29,9 @@ interface PageMessage {
   styleUrl: './movie-detail.css'
 })
 export class MovieDetail {
+  backdropImage = backdropImage;
+  usesPosterAsBackdrop = usesPosterAsBackdrop;
+
   movieId = 0;
   movie = signal<Movie | null>(null);
   loading = signal(true);

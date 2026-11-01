@@ -74,6 +74,7 @@ class MovieSerializer(serializers.ModelSerializer):
             'base_rating',
             'trailer_url',
             'poster_url',
+            'backdrop_url',
             'content_type',
             'director',
             'actors',

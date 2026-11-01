@@ -8,10 +8,10 @@
     <p class="state-message"><a routerLink="/movies">← Back to movies</a></p>
   </div>
 } @else if (movie(); as movie) {
-  <!-- Header: blurred poster as a backdrop, big poster and the main facts -->
+  <!-- Header: the backdrop (or the blurred poster) as background, big poster and the main facts -->
   <section class="header">
-    @if (movie.poster_url) {
-      <div class="backdrop" aria-hidden="true"><img [src]="movie.poster_url" alt="" /></div>
+    @if (backdropImage(movie); as image) {
+      <div class="backdrop" [class.backdrop-wide]="!usesPosterAsBackdrop(movie)" aria-hidden="true"><img [src]="image" alt="" /></div>
     }
 
     <div class="header-inner">

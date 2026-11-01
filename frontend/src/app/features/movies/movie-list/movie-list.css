@@ -22,9 +22,14 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 42%;  /* skip the title lettering at the top of most posters */
+  object-position: center;
+  filter: saturate(1.1) brightness(0.85);
+}
+
+/* No backdrop: a tall poster is cropped instead, skipping its title lettering at the top */
+.hero-bg.from-poster img {
+  object-position: center 42%;
   filter: blur(1.5px) saturate(1.25) brightness(0.78);
-  transform: scale(1.02);
 }
 
 /* Dark from the left (readable title), soft vignette, fade into the page at the bottom */

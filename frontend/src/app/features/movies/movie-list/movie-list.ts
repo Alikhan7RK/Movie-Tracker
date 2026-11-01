@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
 import { Navbar } from '../../../shared/navbar/navbar';
 import { RatingPipe } from '../../../shared/rating.pipe';
+import { backdropImage, usesPosterAsBackdrop } from '../../../shared/backdrop';
 import { MovieCard } from '../../../shared/movie-card/movie-card';
 import { MovieService } from '../../../services/movie.service';
 import { AuthService } from '../../../services/auth.service';
@@ -30,6 +31,8 @@ export class MovieList {
 
   contentTypes = CONTENT_TYPES;
   orderings = MOVIE_ORDERINGS;
+  backdropImage = backdropImage;
+  usesPosterAsBackdrop = usesPosterAsBackdrop;
   isAdmin = false;
   isLoggedIn = false;
 

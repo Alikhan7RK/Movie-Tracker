@@ -94,6 +94,9 @@ Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI
 - ~~Responsive design + dark/light theme~~ — DONE early (cinema redesign, see Conventions).
 
 ### Notes
+- `Movie.backdrop_url` (optional, migration 0007): wide image for the hero + movie-detail background. Frontend always goes
+  through `shared/backdrop.ts` (`backdropImage()` = backdrop, else poster; `usesPosterAsBackdrop()` picks the poster crop).
+  seed_movies has real TMDB w1280 backdrops (checked: 1280x720 JPEGs). After pulling: `migrate` + `seed_movies`.
 - Production config is env-driven (`movie_tracker/settings.py`): `SECRET_KEY`, `DEBUG` (defaults off when Render's `RENDER`
   var exists), `ALLOWED_HOSTS` (+ `RENDER_EXTERNAL_HOSTNAME` auto-added), `CORS_ALLOWED_ORIGINS`, `DATABASE_URL`
   (absent -> SQLite). DEBUG off with the dev key -> ImproperlyConfigured. Free Render has no SSH: admin comes from

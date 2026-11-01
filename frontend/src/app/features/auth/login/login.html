@@ -1,50 +1,54 @@
 <div class="auth-page">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <div class="logo-icon">🎬</div>
-      <span class="logo-text">MovieTracker</span>
+  <aside class="auth-side" aria-hidden="true">
+    <span class="auth-mark"><i></i><i></i><i></i></span>
+    <p class="auth-tagline">Track films you've watched.<br />Save those you want to see.<br /><em>Tell your friends what's good.</em></p>
+  </aside>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <a class="auth-brand" routerLink="/movies">Cine<b>Track</b></a>
+
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-subtitle">Sign in to your watchlist and reviews.</p>
+
+      @if (error()) {
+        <div class="alert alert-error" role="alert">{{ error() }}</div>
+      }
+
+      <form class="auth-form" (ngSubmit)="onSubmit()" #loginForm="ngForm">
+        <label class="field" for="username">
+          <span class="field-label">Username</span>
+          <input
+            id="username"
+            type="text"
+            [(ngModel)]="username"
+            name="username"
+            placeholder="Your username"
+            autocomplete="username"
+          />
+        </label>
+
+        <label class="field" for="password">
+          <span class="field-label">Password</span>
+          <input
+            id="password"
+            type="password"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="Your password"
+            autocomplete="current-password"
+          />
+        </label>
+
+        <button type="submit" class="btn btn-primary btn-block" [disabled]="loading()">
+          @if (loading()) { Signing in... } @else { Sign in }
+        </button>
+      </form>
+
+      <p class="auth-footer">
+        New here? <a routerLink="/register">Create an account</a>
+      </p>
+      <p class="auth-footer"><a routerLink="/movies">← Browse movies without an account</a></p>
     </div>
-
-    <h1 class="auth-title">Sign In</h1>
-    <p class="auth-subtitle">Welcome back! Enter your credentials.</p>
-
-    @if (error) {
-      <div class="error-banner">{{ error }}</div>
-    }
-
-    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
-      <div class="form-group">
-        <label for="username">Username</label>
-        <input
-          id="username"
-          type="text"
-          [(ngModel)]="username"
-          name="username"
-          placeholder="Enter your username"
-          autocomplete="username"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          [(ngModel)]="password"
-          name="password"
-          placeholder="Enter your password"
-          autocomplete="current-password"
-        />
-      </div>
-
-      <button type="submit" class="btn-primary" [disabled]="loading">
-        @if (loading) { Signing in... } @else { Sign In }
-      </button>
-    </form>
-
-    <p class="auth-footer">
-      Don't have an account?
-      <a routerLink="/register">Register</a>
-    </p>
-  </div>
+  </main>
 </div>

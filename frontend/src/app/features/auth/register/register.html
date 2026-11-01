@@ -1,66 +1,69 @@
 <div class="auth-page">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <div class="logo-icon">🎬</div>
-      <span class="logo-text">MovieTracker</span>
+  <aside class="auth-side" aria-hidden="true">
+    <span class="auth-mark"><i></i><i></i><i></i></span>
+    <p class="auth-tagline">Your film diary.<br />Rate what you watch.<br /><em>Never forget a recommendation.</em></p>
+  </aside>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <a class="auth-brand" routerLink="/movies">Cine<b>Track</b></a>
+
+      <h1 class="auth-title">Create your account</h1>
+      <p class="auth-subtitle">Free, and it takes ten seconds.</p>
+
+      @if (error()) {
+        <div class="alert alert-error" role="alert">{{ error() }}</div>
+      }
+
+      @if (success()) {
+        <div class="alert alert-success" role="status">{{ success() }}</div>
+      }
+
+      <form class="auth-form" (ngSubmit)="onSubmit()" #registerForm="ngForm">
+        <label class="field" for="reg-username">
+          <span class="field-label">Username</span>
+          <input
+            id="reg-username"
+            type="text"
+            [(ngModel)]="username"
+            name="username"
+            placeholder="Choose a username"
+            autocomplete="username"
+          />
+        </label>
+
+        <label class="field" for="reg-email">
+          <span class="field-label">Email <span class="optional">(optional)</span></span>
+          <input
+            id="reg-email"
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+          />
+        </label>
+
+        <label class="field" for="reg-password">
+          <span class="field-label">Password</span>
+          <input
+            id="reg-password"
+            type="password"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="At least 4 characters"
+            autocomplete="new-password"
+          />
+        </label>
+
+        <button type="submit" class="btn btn-primary btn-block" [disabled]="loading()">
+          @if (loading()) { Creating account... } @else { Create account }
+        </button>
+      </form>
+
+      <p class="auth-footer">
+        Already have an account? <a routerLink="/login">Sign in</a>
+      </p>
     </div>
-
-    <h1 class="auth-title">Create Account</h1>
-    <p class="auth-subtitle">Join us and start tracking your movies.</p>
-
-    @if (error) {
-      <div class="error-banner">{{ error }}</div>
-    }
-
-    @if (success) {
-      <div class="success-banner">{{ success }}</div>
-    }
-
-    <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
-      <div class="form-group">
-        <label for="reg-username">Username</label>
-        <input
-          id="reg-username"
-          type="text"
-          [(ngModel)]="username"
-          name="username"
-          placeholder="Choose a username"
-          autocomplete="username"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="reg-email">Email <span class="optional">(optional)</span></label>
-        <input
-          id="reg-email"
-          type="email"
-          [(ngModel)]="email"
-          name="email"
-          placeholder="Enter your email"
-          autocomplete="email"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="reg-password">Password</label>
-        <input
-          id="reg-password"
-          type="password"
-          [(ngModel)]="password"
-          name="password"
-          placeholder="At least 4 characters"
-          autocomplete="new-password"
-        />
-      </div>
-
-      <button type="submit" class="btn-primary" [disabled]="loading">
-        @if (loading) { Creating account... } @else { Register }
-      </button>
-    </form>
-
-    <p class="auth-footer">
-      Already have an account?
-      <a routerLink="/login">Sign In</a>
-    </p>
-  </div>
+  </main>
 </div>

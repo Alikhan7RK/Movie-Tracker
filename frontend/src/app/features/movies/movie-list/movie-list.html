@@ -1,80 +1,116 @@
 <app-navbar></app-navbar>
 
-<div class="page">
+@if (topMovie(); as top) {
+  @if (page() === 1 && !isFiltering) {
+    <section class="hero">
+      @if (top.poster_url) {
+        <div class="backdrop" aria-hidden="true"><img [src]="top.poster_url" alt="" /></div>
+      }
+
+      <div class="hero-inner">
+        <a class="hero-poster" [routerLink]="['/movies', top.id]">
+          <img class="poster-img" [src]="top.poster_url || '/no-poster.svg'" [alt]="top.title" />
+        </a>
+
+        <div class="hero-text">
+          <span class="eyebrow">★ Top rated on CineTrack</span>
+          <h1 class="hero-title">{{ top.title }}</h1>
+          <p class="hero-meta">
+            <span class="rating-text">{{ top.rating | rating }}</span>
+            <span>{{ top.year }}</span>
+            @if (top.duration) { <span>{{ top.duration }} min</span> }
+            @if (top.director) { <span>Directed by {{ top.director }}</span> }
+          </p>
+          <p class="hero-desc">{{ top.description }}</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" [routerLink]="['/movies', top.id]">View details</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+}
+
+<main class="container">
   <div class="title-row">
-    <h1 class="page-title">Movies</h1>
+    <div>
+      <h2 class="page-title">Browse</h2>
+      @if (!loading() && !error()) {
+        <p class="result-count">{{ totalCount() }} title{{ totalCount() !== 1 ? 's' : '' }}</p>
+      }
+    </div>
     @if (isAdmin) {
-      <a class="add-btn" routerLink="/movies/new">+ Add movie</a>
+      <a class="btn btn-primary" routerLink="/movies/new">+ Add movie</a>
     }
   </div>
 
   <div class="toolbar">
-    <div class="search-box">
-      <span class="search-icon">⌕</span>
+    <label class="search-box">
+      <span class="sr-only">Search</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
       <input
         type="text"
         placeholder="Search by title, director or actor..."
         [(ngModel)]="search"
         (ngModelChange)="onSearchChange($event)"
       />
-    </div>
+    </label>
 
-    <div class="filter-box">
-      <select [(ngModel)]="selectedGenre" (ngModelChange)="onFiltersChange()">
-        <option value="">All genres</option>
-        @for (genre of genres(); track genre.id) {
-          <option [ngValue]="genre.id">{{ genre.name }}</option>
-        }
-      </select>
-      <span class="arrow">⌄</span>
-    </div>
+    <select [(ngModel)]="selectedGenre" (ngModelChange)="onFiltersChange()" aria-label="Genre">
+      <option value="">All genres</option>
+      @for (genre of genres(); track genre.id) {
+        <option [ngValue]="genre.id">{{ genre.name }}</option>
+      }
+    </select>
 
-    <div class="filter-box">
-      <select [(ngModel)]="selectedType" (ngModelChange)="onFiltersChange()">
-        <option value="">All types</option>
-        @for (type of contentTypes; track type.value) {
-          <option [value]="type.value">{{ type.label }}</option>
-        }
-      </select>
-      <span class="arrow">⌄</span>
-    </div>
+    <select [(ngModel)]="selectedType" (ngModelChange)="onFiltersChange()" aria-label="Type">
+      <option value="">All types</option>
+      @for (type of contentTypes; track type.value) {
+        <option [value]="type.value">{{ type.label }}</option>
+      }
+    </select>
 
-    <div class="filter-box">
-      <select [(ngModel)]="ordering" (ngModelChange)="onFiltersChange()" aria-label="Sort movies">
-        @for (option of orderings; track option.value) {
-          <option [value]="option.value">{{ option.label }}</option>
-        }
-      </select>
-      <span class="arrow">⌄</span>
-    </div>
+    <select [(ngModel)]="ordering" (ngModelChange)="onFiltersChange()" aria-label="Sort movies">
+      @for (option of orderings; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
   </div>
 
   @if (loading()) {
-    <p class="state-message">Loading movies...</p>
+    <div class="movies-grid" aria-busy="true">
+      @for (n of [1, 2, 3, 4, 5, 6]; track n) {
+        <div class="skeleton"></div>
+      }
+    </div>
   } @else if (error()) {
     <div class="state-message error">
       <p>{{ error() }}</p>
-      <button (click)="loadMovies()">Try again</button>
+      <button class="btn btn-primary" (click)="loadMovies()">Try again</button>
     </div>
   } @else {
-    <p class="result-count">{{ totalCount() }} title{{ totalCount() !== 1 ? 's' : '' }}</p>
-
     <div class="movies-grid">
       @for (movie of movies(); track movie.id) {
         <app-movie-card [movie]="movie"></app-movie-card>
       } @empty {
-        <p class="state-message">No movies found.</p>
+        <p class="state-message empty">No movies found. Try another search or filter.</p>
       }
     </div>
 
     @if (totalPages() > 1) {
       <nav class="pagination" aria-label="Pages">
-        <button (click)="goToPage(page() - 1)" [disabled]="page() === 1">‹ Prev</button>
+        <button class="btn btn-ghost btn-sm" (click)="goToPage(page() - 1)" [disabled]="page() === 1">‹ Prev</button>
         @for (n of pageNumbers(); track n) {
-          <button [class.active]="n === page()" (click)="goToPage(n)">{{ n }}</button>
+          <button
+            class="btn btn-sm"
+            [class.btn-primary]="n === page()"
+            [class.btn-ghost]="n !== page()"
+            [attr.aria-current]="n === page() ? 'page' : null"
+            (click)="goToPage(n)"
+          >{{ n }}</button>
         }
-        <button (click)="goToPage(page() + 1)" [disabled]="page() === totalPages()">Next ›</button>
+        <button class="btn btn-ghost btn-sm" (click)="goToPage(page() + 1)" [disabled]="page() === totalPages()">Next ›</button>
       </nav>
     }
   }
-</div>
+</main>

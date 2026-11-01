@@ -1,112 +1,115 @@
 <app-navbar></app-navbar>
 
-<div class="profile-page">
-
+<main class="container profile-page">
   @if (loading()) {
-    <p class="info-text">Loading profile...</p>
+    <p class="state-message">Loading profile...</p>
   } @else if (error()) {
-    <p class="error-text">{{ error() }}</p>
+    <p class="alert alert-error">{{ error() }}</p>
   } @else if (profile(); as profile) {
-    <div class="profile-header">
-      <div class="avatar">{{ profile.username[0].toUpperCase() }}</div>
+    <section class="profile-header">
+      <div class="avatar" aria-hidden="true">{{ profile.username[0].toUpperCase() }}</div>
       <div class="profile-info">
-        <h1 class="username">{{ profile.username }}</h1>
+        <h1 class="page-title">{{ profile.username }}</h1>
         <p class="email">{{ profile.email || 'No email provided' }}</p>
-        <p class="reviews-count">{{ profile.reviews.length }} review{{ profile.reviews.length !== 1 ? 's' : '' }}</p>
+        <div class="stats">
+          <span><strong>{{ profile.reviews.length }}</strong> review{{ profile.reviews.length !== 1 ? 's' : '' }}</span>
+          @if (profile.is_staff) { <span class="chip">Admin</span> }
+        </div>
       </div>
       <div class="header-actions">
         @if (!editing()) {
-          <button class="ghost-btn" (click)="startEditing()">Edit profile</button>
+          <button class="btn btn-ghost btn-sm" (click)="startEditing()">Edit profile</button>
         }
-        <button class="ghost-btn" (click)="togglePasswordForm()">
+        <button class="btn btn-ghost btn-sm" (click)="togglePasswordForm()">
           {{ showPasswordForm() ? 'Cancel' : 'Change password' }}
         </button>
       </div>
-    </div>
+    </section>
 
     @if (profileMessage()) {
-      <p class="success-text">{{ profileMessage() }}</p>
+      <p class="alert alert-success">{{ profileMessage() }}</p>
     }
     @if (passwordMessage()) {
-      <p class="success-text">{{ passwordMessage() }}</p>
+      <p class="alert alert-success">{{ passwordMessage() }}</p>
     }
 
-    @if (editing()) {
-      <form class="settings-card" (ngSubmit)="saveProfile()">
-        <h2 class="section-title">Edit profile</h2>
-        <label class="field">
-          <span>Username</span>
-          <input type="text" name="username" [(ngModel)]="editUsername" autocomplete="username" required />
-        </label>
-        <label class="field">
-          <span>Email</span>
-          <input type="email" name="email" [(ngModel)]="editEmail" autocomplete="email" />
-        </label>
-        @if (profileError()) {
-          <p class="error-text">{{ profileError() }}</p>
+    @if (editing() || showPasswordForm()) {
+      <div class="settings">
+        @if (editing()) {
+          <form class="card settings-card" (ngSubmit)="saveProfile()">
+            <h2 class="section-title">Edit profile</h2>
+            <label class="field">
+              <span class="field-label">Username</span>
+              <input type="text" name="username" [(ngModel)]="editUsername" autocomplete="username" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Email</span>
+              <input type="email" name="email" [(ngModel)]="editEmail" autocomplete="email" />
+            </label>
+            @if (profileError()) {
+              <p class="alert alert-error">{{ profileError() }}</p>
+            }
+            <div class="form-buttons">
+              <button class="btn btn-primary" type="submit" [disabled]="savingProfile()">
+                {{ savingProfile() ? 'Saving...' : 'Save' }}
+              </button>
+              <button class="btn btn-ghost" type="button" (click)="cancelEditing()">Cancel</button>
+            </div>
+          </form>
         }
-        <div class="form-buttons">
-          <button class="primary-btn" type="submit" [disabled]="savingProfile()">
-            {{ savingProfile() ? 'Saving...' : 'Save' }}
-          </button>
-          <button class="ghost-btn" type="button" (click)="cancelEditing()">Cancel</button>
-        </div>
-      </form>
-    }
 
-    @if (showPasswordForm()) {
-      <form class="settings-card" (ngSubmit)="changePassword()">
-        <h2 class="section-title">Change password</h2>
-        <label class="field">
-          <span>Current password</span>
-          <input type="password" name="oldPassword" [(ngModel)]="oldPassword" autocomplete="current-password" />
-        </label>
-        <label class="field">
-          <span>New password</span>
-          <input type="password" name="newPassword" [(ngModel)]="newPassword" autocomplete="new-password" />
-        </label>
-        <label class="field">
-          <span>Repeat new password</span>
-          <input type="password" name="confirmPassword" [(ngModel)]="confirmPassword" autocomplete="new-password" />
-        </label>
-        @if (passwordError()) {
-          <p class="error-text">{{ passwordError() }}</p>
+        @if (showPasswordForm()) {
+          <form class="card settings-card" (ngSubmit)="changePassword()">
+            <h2 class="section-title">Change password</h2>
+            <label class="field">
+              <span class="field-label">Current password</span>
+              <input type="password" name="oldPassword" [(ngModel)]="oldPassword" autocomplete="current-password" />
+            </label>
+            <label class="field">
+              <span class="field-label">New password</span>
+              <input type="password" name="newPassword" [(ngModel)]="newPassword" autocomplete="new-password" />
+            </label>
+            <label class="field">
+              <span class="field-label">Repeat new password</span>
+              <input type="password" name="confirmPassword" [(ngModel)]="confirmPassword" autocomplete="new-password" />
+            </label>
+            @if (passwordError()) {
+              <p class="alert alert-error">{{ passwordError() }}</p>
+            }
+            <div class="form-buttons">
+              <button class="btn btn-primary" type="submit" [disabled]="savingPassword()">
+                {{ savingPassword() ? 'Saving...' : 'Change password' }}
+              </button>
+            </div>
+          </form>
         }
-        <div class="form-buttons">
-          <button class="primary-btn" type="submit" [disabled]="savingPassword()">
-            {{ savingPassword() ? 'Saving...' : 'Change password' }}
-          </button>
-        </div>
-      </form>
+      </div>
     }
 
-    <div class="section">
-      <h2 class="section-title">My Reviews</h2>
+    <section>
+      <h2 class="section-title">My reviews</h2>
 
       @if (profile.reviews.length === 0) {
-        <p class="info-text">You haven't written any reviews yet.</p>
+        <div class="card empty">
+          <p class="hint">You haven't written any reviews yet.</p>
+          <a class="btn btn-primary btn-sm" routerLink="/movies">Find something to review</a>
+        </div>
       }
 
       <div class="reviews-list">
         @for (review of profile.reviews; track review.id) {
-          <div class="review-card">
+          <article class="review-card">
             <div class="review-top">
-              <span class="movie-name">{{ review.movie_title }}</span>
-              <div class="stars">
-                @for (s of getStars(review.stars); track $index) {
-                  <span class="star filled">{{ s }}</span>
-                }
-                @for (s of getEmptyStars(review.stars); track $index) {
-                  <span class="star empty">{{ s }}</span>
-                }
-              </div>
+              <a class="movie-name" [routerLink]="['/movies', review.movie]">{{ review.movie_title }}</a>
+              <span class="stars-text" [attr.aria-label]="review.stars + ' of 5 stars'">
+                @for (s of getStars(review.stars); track $index) {<span>{{ s }}</span>}@for (s of getEmptyStars(review.stars); track $index) {<span class="star-empty">{{ s }}</span>}
+              </span>
             </div>
             <p class="review-text">{{ review.text }}</p>
             <span class="review-date">{{ review.created_at | date:'mediumDate' }}</span>
-          </div>
+          </article>
         }
       </div>
-    </div>
+    </section>
   }
-
-</div>
+</main>

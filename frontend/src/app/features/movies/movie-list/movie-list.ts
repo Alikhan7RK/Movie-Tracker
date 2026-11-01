@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
 import { Navbar } from '../../../shared/navbar/navbar';
+import { RatingPipe } from '../../../shared/rating.pipe';
 import { MovieCard } from '../../../shared/movie-card/movie-card';
 import { MovieService } from '../../../services/movie.service';
 import { AuthService } from '../../../services/auth.service';
@@ -16,7 +17,7 @@ const SEARCH_DEBOUNCE_MS = 400;
 @Component({
   selector: 'app-movie-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Navbar, MovieCard],
+  imports: [CommonModule, FormsModule, RouterLink, Navbar, MovieCard, RatingPipe],
   templateUrl: './movie-list.html',
   styleUrl: './movie-list.css'
 })
@@ -39,6 +40,8 @@ export class MovieList {
   page = signal(1);
   totalPages = signal(1);
   totalCount = signal(0);
+  // Best rated movie, shown in the big banner at the top of page 1
+  topMovie = signal<Movie | null>(null);
 
   // Page buttons around the current page, e.g. page 6 of 10 -> [4, 5, 6, 7, 8]
   pageNumbers = computed(() => {
@@ -53,13 +56,21 @@ export class MovieList {
 
   constructor(private movieService: MovieService, private authService: AuthService) {}
 
+  // True when the user is searching or filtering: the banner is hidden then, so results are visible right away
+  get isFiltering(): boolean {
+    return !!(this.search.trim() || this.selectedGenre || this.selectedType);
+  }
+
   ngOnInit() {
     this.isAdmin = this.authService.isAdmin();
     this.loadMovies();
 
-    // If genres fail to load, the page still works, the filter is just empty
+    // If genres or the top movie fail to load, the page still works without them
     this.movieService.getGenres().subscribe({
       next: (genres) => this.genres.set(genres)
+    });
+    this.movieService.getMovies({ ordering: '-rating' }).subscribe({
+      next: (result) => this.topMovie.set(result.results[0] ?? null)
     });
 
     // Search only when the user stops typing, not on every key press

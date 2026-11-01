@@ -1,65 +1,68 @@
 <app-navbar></app-navbar>
 
-<div class="watchlist-page">
-  <h1>My Watchlist</h1>
+<main class="container">
+  <header class="page-head">
+    <span class="eyebrow">Your films</span>
+    <h1 class="page-title">Watchlist</h1>
+  </header>
 
   @if (loading()) {
-    <p class="info-text">Loading watchlist...</p>
+    <p class="state-message">Loading watchlist...</p>
   } @else if (error()) {
-    <p class="error-text">{{ error() }}</p>
+    <p class="alert alert-error">{{ error() }}</p>
   } @else if (items().length === 0) {
-    <div class="empty-state">
-      <h2>Your watchlist is empty</h2>
-      <p>Add movies from the details page to see them here.</p>
+    <div class="empty card">
+      <h2 class="section-title">Your watchlist is empty</h2>
+      <p class="hint">Open any movie and press “Add to watchlist” to keep track of it here.</p>
+      <a class="btn btn-primary" routerLink="/movies">Browse movies</a>
     </div>
   } @else {
-    <div class="tabs">
-      <button [class.active]="activeFilter() === 'all'" (click)="activeFilter.set('all')">
-        All ({{ countByStatus('all') }})
+    <div class="tabs" role="tablist">
+      <button role="tab" [attr.aria-selected]="activeFilter() === 'all'" [class.active]="activeFilter() === 'all'" (click)="activeFilter.set('all')">
+        All <span>{{ countByStatus('all') }}</span>
       </button>
       @for (s of statuses; track s.value) {
-        <button [class.active]="activeFilter() === s.value" (click)="activeFilter.set(s.value)">
-          {{ s.label }} ({{ countByStatus(s.value) }})
+        <button role="tab" [attr.aria-selected]="activeFilter() === s.value" [class.active]="activeFilter() === s.value" (click)="activeFilter.set(s.value)">
+          {{ s.label }} <span>{{ countByStatus(s.value) }}</span>
         </button>
       }
     </div>
 
     @if (actionError()) {
-      <p class="error-text">{{ actionError() }}</p>
+      <p class="alert alert-error">{{ actionError() }}</p>
     }
 
-    <div class="watchlist-list">
+    <div class="list">
       @for (item of filteredItems(); track item.id) {
-        <div class="watchlist-card">
-          <img
-            class="watchlist-poster"
-            [src]="item.movie_poster || '/no-poster.svg'"
-            [alt]="item.movie_title"
-          />
+        <article class="row">
+          <a class="thumb" [routerLink]="['/movies', item.movie]">
+            <img class="poster-img" [src]="item.movie_poster || '/no-poster.svg'" [alt]="item.movie_title" />
+          </a>
 
-          <div class="watchlist-info">
+          <div class="row-info">
             <h3><a [routerLink]="['/movies', item.movie]">{{ item.movie_title }}</a></h3>
-            <p class="meta">Year: {{ item.movie_year }}</p>
-            <p class="meta">Rating: {{ item.movie_rating | rating }}</p>
-            <p class="date">Added: {{ item.added_at | date:'mediumDate' }}</p>
-
-            <div class="actions">
-              <label class="status-label">
-                Status:
-                <select #statusSelect (change)="changeStatus(item, statusSelect)">
-                  @for (s of statuses; track s.value) {
-                    <option [value]="s.value" [selected]="s.value === item.status">{{ s.label }}</option>
-                  }
-                </select>
-              </label>
-
-              <button class="remove-btn" (click)="remove(item)">Remove</button>
-            </div>
+            <p class="meta">
+              <span>{{ item.movie_year }}</span>
+              <span class="rating-text">{{ item.movie_rating | rating }}</span>
+            </p>
+            <p class="added">Added {{ item.added_at | date:'mediumDate' }}</p>
           </div>
-        </div>
+
+          <div class="row-actions">
+            <label class="status">
+              <span class="sr-only">Status of {{ item.movie_title }}</span>
+              <select #statusSelect (change)="changeStatus(item, statusSelect)" [attr.data-status]="item.status">
+                @for (s of statuses; track s.value) {
+                  <option [value]="s.value" [selected]="s.value === item.status">{{ s.label }}</option>
+                }
+              </select>
+            </label>
+            <button class="btn btn-danger btn-sm" (click)="remove(item)">Remove</button>
+          </div>
+        </article>
       } @empty {
-        <p class="info-text">No movies with this status.</p>
+        <p class="state-message">No movies with this status.</p>
       }
     </div>
   }
-</div>
+</main>

@@ -1,80 +1,92 @@
 <app-navbar></app-navbar>
 
 @if (loading()) {
-  <div class="detail">
-    <p class="state-message">Loading movie...</p>
-  </div>
+  <div class="container"><p class="state-message">Loading movie...</p></div>
 } @else if (error()) {
-  <div class="detail">
+  <div class="container">
     <p class="state-message error">{{ error() }}</p>
+    <p class="state-message"><a routerLink="/movies">← Back to movies</a></p>
   </div>
 } @else if (movie(); as movie) {
-  <div class="detail">
-    <div class="top">
-      <img class="poster" [src]="movie.poster_url || '/no-poster.svg'" [alt]="movie.title" />
+  <!-- Header: blurred poster as a backdrop, big poster and the main facts -->
+  <section class="header">
+    @if (movie.poster_url) {
+      <div class="backdrop" aria-hidden="true"><img [src]="movie.poster_url" alt="" /></div>
+    }
+
+    <div class="header-inner">
+      <img class="poster-img poster" [src]="movie.poster_url || '/no-poster.svg'" [alt]="movie.title" />
 
       <div class="info">
-        <h1>{{ movie.title }}</h1>
-        <p class="genre">{{ genreNames }}</p>
-        <p class="rating">{{ movie.rating | rating }}</p>
+        <a class="back" routerLink="/movies">← All movies</a>
+        <h1 class="title">{{ movie.title }} <span class="year">{{ movie.year }}</span></h1>
+
+        <p class="facts">
+          @if (movie.director) { <span>Directed by <strong>{{ movie.director }}</strong></span> }
+          @if (movie.duration) { <span>{{ movie.duration }} min</span> }
+          @if (movie.country) { <span>{{ movie.country }}</span> }
+        </p>
+
+        @if (movie.genres.length) {
+          <div class="genres">
+            @for (genre of movie.genres; track genre.id) {
+              <span class="chip">{{ genre.name }}</span>
+            }
+          </div>
+        }
+
+        <div class="score">
+          <span class="score-value">{{ movie.rating | rating }}</span>
+          <span class="score-note">{{ reviews().length ? 'from ' + reviews().length + ' review' + (reviews().length !== 1 ? 's' : '') : 'original rating' }}</span>
+        </div>
+
         <p class="desc">{{ movie.description }}</p>
 
-        <div class="extra">
-          <p><span>Year:</span> {{ movie.year }}</p>
-          @if (movie.country) {
-            <p><span>Country:</span> {{ movie.country }}</p>
-          }
-          @if (movie.director) {
-            <p><span>Director:</span> {{ movie.director }}</p>
-          }
-          @if (movie.actors) {
-            <p><span>Actors:</span> {{ movie.actors }}</p>
-          }
-          @if (movie.duration) {
-            <p><span>Duration:</span> {{ movie.duration }} min</p>
+        @if (movie.actors) {
+          <p class="cast"><span>Cast</span> {{ movie.actors }}</p>
+        }
+
+        <div class="actions">
+          @if (!isLoggedIn) {
+            <p class="hint"><a routerLink="/login">Sign in</a> to add this movie to your watchlist.</p>
+          } @else if (watchlistItem(); as item) {
+            <span class="in-watchlist">✓ In your watchlist: <strong>{{ statusLabel(item.status) }}</strong></span>
+            <a class="btn btn-ghost btn-sm" routerLink="/watchlist">Manage</a>
+          } @else {
+            <button class="btn btn-primary" (click)="addToWatchlist()">+ Add to watchlist</button>
           }
         </div>
 
-        @if (!isLoggedIn) {
-          <p class="hint"><a routerLink="/login">Log in</a> to add this movie to your watchlist.</p>
-        } @else if (watchlistItem(); as item) {
-          <p class="in-watchlist">
-            In your watchlist: <strong>{{ statusLabel(item.status) }}</strong>
-            · <a routerLink="/watchlist">Manage</a>
-          </p>
-        } @else {
-          <button class="watchlist-btn" (click)="addToWatchlist()">
-            Add to Watchlist
-          </button>
-        }
-
         @if (watchlistMessage(); as msg) {
-          <p class="message" [class.error]="msg.type === 'error'">{{ msg.text }}</p>
+          <p class="alert" [class.alert-error]="msg.type === 'error'" [class.alert-success]="msg.type === 'success'">{{ msg.text }}</p>
         }
 
         @if (isAdmin) {
           <div class="admin-actions">
+            <span class="admin-label">Admin</span>
             @if (!confirmingDelete()) {
-              <a class="admin-btn" [routerLink]="['/movies', movie.id, 'edit']">Edit</a>
-              <button class="admin-btn danger" (click)="confirmingDelete.set(true)">Delete</button>
+              <a class="btn btn-ghost btn-sm" [routerLink]="['/movies', movie.id, 'edit']">Edit</a>
+              <button class="btn btn-danger btn-sm" (click)="confirmingDelete.set(true)">Delete</button>
             } @else {
               <span class="confirm-text">Delete "{{ movie.title }}"? This cannot be undone.</span>
-              <button class="admin-btn danger" (click)="deleteMovie()" [disabled]="deleting()">
+              <button class="btn btn-danger btn-sm" (click)="deleteMovie()" [disabled]="deleting()">
                 {{ deleting() ? 'Deleting...' : 'Yes, delete' }}
               </button>
-              <button class="admin-btn" (click)="confirmingDelete.set(false)" [disabled]="deleting()">Cancel</button>
+              <button class="btn btn-ghost btn-sm" (click)="confirmingDelete.set(false)" [disabled]="deleting()">Cancel</button>
             }
           </div>
           @if (deleteError()) {
-            <p class="message error">{{ deleteError() }}</p>
+            <p class="alert alert-error">{{ deleteError() }}</p>
           }
         }
       </div>
     </div>
+  </section>
 
+  <main class="container body">
     @if (trailerEmbedUrl(); as trailerUrl) {
-      <div class="trailer">
-        <h2>Trailer</h2>
+      <section>
+        <h2 class="section-title">Trailer</h2>
         <div class="trailer-frame">
           <iframe
             [src]="trailerUrl"
@@ -84,62 +96,72 @@
             referrerpolicy="strict-origin-when-cross-origin"
           ></iframe>
         </div>
-      </div>
+      </section>
     } @else if (movie.trailer_url) {
-      <p class="trailer-link">
-        <a [href]="movie.trailer_url" target="_blank" rel="noopener noreferrer">Watch the trailer ↗</a>
-      </p>
+      <p><a [href]="movie.trailer_url" target="_blank" rel="noopener noreferrer">Watch the trailer ↗</a></p>
     }
 
-    <div class="review-section">
-      @if (isLoggedIn) {
-        <h2>{{ myReview() ? 'Update your review' : 'Leave a review' }}</h2>
+    <section class="reviews">
+      <div class="review-form card">
+        @if (isLoggedIn) {
+          <h2 class="section-title">{{ myReview() ? 'Update your review' : 'Write a review' }}</h2>
 
-        <div class="stars">
-          @for (star of [1,2,3,4,5]; track star) {
-            <span (click)="setRating(star)" [class.active]="star <= rating">★</span>
+          <div class="stars" role="radiogroup" aria-label="Your rating">
+            @for (star of [1,2,3,4,5]; track star) {
+              <button
+                type="button"
+                role="radio"
+                [attr.aria-checked]="star === rating"
+                [attr.aria-label]="star + ' star' + (star > 1 ? 's' : '')"
+                [class.active]="star <= rating"
+                (click)="setRating(star)"
+              >★</button>
+            }
+          </div>
+
+          <textarea [(ngModel)]="comment" placeholder="What did you think?" aria-label="Your review"></textarea>
+
+          <button class="btn btn-primary" (click)="submitReview()" [disabled]="submitting()">
+            {{ submitting() ? 'Saving...' : (myReview() ? 'Update review' : 'Post review') }}
+          </button>
+
+          @if (reviewMessage(); as msg) {
+            <p class="alert" [class.alert-error]="msg.type === 'error'" [class.alert-success]="msg.type === 'success'">{{ msg.text }}</p>
           }
-        </div>
-
-        <textarea [(ngModel)]="comment" placeholder="Write your comment..."></textarea>
-
-        <button (click)="submitReview()" [disabled]="submitting()">
-          {{ submitting() ? 'Saving...' : 'Submit' }}
-        </button>
-
-        @if (reviewMessage(); as msg) {
-          <p class="message" [class.error]="msg.type === 'error'">{{ msg.text }}</p>
+        } @else {
+          <h2 class="section-title">Write a review</h2>
+          <p class="hint"><a routerLink="/login">Sign in</a> to leave a review.</p>
         }
-      } @else {
-        <p class="hint"><a routerLink="/login">Log in</a> to leave a review.</p>
-      }
+      </div>
 
-      <div class="comments">
-        <h3>Reviews ({{ reviews().length }})</h3>
+      <div class="review-list">
+        <h2 class="section-title">Reviews <span class="count">{{ reviews().length }}</span></h2>
 
         @if (reviewsError()) {
-          <p class="message error">{{ reviewsError() }}</p>
+          <p class="alert alert-error">{{ reviewsError() }}</p>
         }
 
         @for (review of reviews(); track review.id) {
-          <div class="comment">
-            <div class="comment-header">
-              <span class="comment-user">{{ review.user }}</span>
-              <span class="comment-date">{{ review.created_at | date:'mediumDate' }}</span>
+          <article class="review">
+            <span class="review-avatar" aria-hidden="true">{{ review.user.charAt(0).toUpperCase() }}</span>
+            <div class="review-body">
+              <div class="review-head">
+                <strong>{{ review.user }}</strong>
+                <span class="stars-text" [attr.aria-label]="review.stars + ' of 5 stars'">{{ starsText(review.stars) }}</span>
+                <span class="review-date">{{ review.created_at | date:'mediumDate' }}</span>
+              </div>
+              <p>{{ review.text }}</p>
+              @if (review.user === username) {
+                <button class="link-btn" (click)="deleteReview(review)">Delete my review</button>
+              }
             </div>
-            <span class="comment-rating">{{ starsText(review.stars) }}</span>
-            <p>{{ review.text }}</p>
-
-            @if (review.user === username) {
-              <button class="delete-review" (click)="deleteReview(review)">Delete my review</button>
-            }
-          </div>
+          </article>
         } @empty {
           @if (!reviewsError()) {
             <p class="hint">No reviews yet. Be the first!</p>
           }
         }
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 }

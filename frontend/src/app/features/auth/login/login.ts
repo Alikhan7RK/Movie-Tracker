@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -14,27 +14,28 @@ import { AuthService } from '../../../services/auth.service';
 export class Login {
   username = '';
   password = '';
-  error = '';
-  loading = false;
+  // Signals, so messages set inside subscribe() show up (zoneless app)
+  error = signal('');
+  loading = signal(false);
 
   constructor(private authService: AuthService, private router: Router) {}
 
   onSubmit(): void {
     if (!this.username || !this.password) {
-      this.error = 'Please fill in all fields.';
+      this.error.set('Please fill in all fields.');
       return;
     }
 
-    this.loading = true;
-    this.error = '';
+    this.loading.set(true);
+    this.error.set('');
 
     this.authService.login(this.username, this.password).subscribe({
       next: () => {
         this.router.navigate(['/movies']);
       },
       error: () => {
-        this.error = 'Invalid username or password.';
-        this.loading = false;
+        this.error.set('Invalid username or password.');
+        this.loading.set(false);
       }
     });
   }

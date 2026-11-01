@@ -12,6 +12,21 @@ connected through a REST API with **JWT authentication**.
 
 ---
 
+## 📸 Screenshots
+
+| Movies (dark) | Movie page (light) |
+|---|---|
+| ![Movie list with the top rated movie banner](docs/screenshots/movies-dark.png) | ![Movie page with backdrop header and reviews](docs/screenshots/movie-detail-light.png) |
+| **Watchlist** | **Sign in** |
+| ![Watchlist with status tabs](docs/screenshots/watchlist-dark.png) | ![Sign in page](docs/screenshots/login-dark.png) |
+
+<p>
+  <img src="docs/screenshots/movies-phone.png" alt="Movie list on a phone" width="220">
+  <img src="docs/screenshots/movie-detail-phone.png" alt="Movie page on a phone" width="220">
+</p>
+
+---
+
 ## ✨ Features
 
 ### 🔐 Authentication
@@ -22,7 +37,7 @@ connected through a REST API with **JWT authentication**.
 * Route **guards**: `authGuard` (watchlist, profile) and `adminGuard` (add/edit movie pages)
 
 ### 🎬 Movies
-* Movie list loaded from the API, **12 per page** with page buttons
+* Movie list loaded from the API, **12 per page** with page buttons, and a banner with the **top rated** movie
 * **Search** by title, director or actor (waits until you stop typing), **genre** and **type** filters
   (Movie / Series / Cartoon / Anime) and **sorting** by rating, year or title. All of it is done by the backend
 * Movie page with poster, genres, rating, year, country, director, actors, duration and an embedded **YouTube trailer**
@@ -40,6 +55,13 @@ connected through a REST API with **JWT authentication**.
 * Add a movie to your watchlist from its page (the page shows the status if it is already added)
 * Change status (Planned / Watching / Completed) or remove a movie
 * Filter tabs: All / Planned / Watching / Completed
+
+### 🎨 Design
+* Cinema-style theme: charcoal background, one orange accent, large posters, Inter font (Google Fonts)
+* **Dark / light theme** toggle in the navbar; the choice is saved in `localStorage` (first visit follows the OS setting)
+* Fully responsive: phone (menu button), tablet and desktop layouts
+* All colors, font sizes, spacing and radius are CSS variables in `frontend/src/styles.css` (the design system);
+  components only use `var(--...)`, so the light theme is just a second set of variable values
 
 ### 👤 Profile
 * Username, email and a list of your reviews
@@ -192,7 +214,7 @@ Movie-Tracker/
         │   ├── watchlist/      # watchlist page
         │   └── profile/        # profile page
         ├── models/             # TypeScript interfaces (Movie, Review, WatchlistItem, UserProfile)
-        ├── services/           # HttpClient services: auth, movie, review, watchlist
+        ├── services/           # HttpClient services: auth, movie, review, watchlist; theme (dark/light)
         ├── shared/             # navbar, movie-card, rating pipe, YouTube helper
         └── app.routes.ts       # page routes
 ```

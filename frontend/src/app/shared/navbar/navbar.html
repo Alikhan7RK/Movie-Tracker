@@ -1,21 +1,57 @@
 <header class="navbar">
-  <a class="logo-wrap" routerLink="/movies">
-    <div class="logo-icon">🎬</div>
-    <span class="logo-text">MovieTracker</span>
-  </a>
+  <div class="nav-inner">
+    <a class="logo" routerLink="/movies" (click)="closeMenu()">
+      <span class="logo-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="logo-text">Cine<b>Track</b></span>
+    </a>
 
-  <nav class="nav-links">
-    <a routerLink="/movies" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Movies</a>
-    <a routerLink="/watchlist" routerLinkActive="active">Watchlist</a>
+    <div class="nav-right">
+      <button
+        class="icon-btn"
+        type="button"
+        (click)="themeService.toggle()"
+        [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+        [title]="themeService.theme() === 'dark' ? 'Light theme' : 'Dark theme'"
+      >
+        @if (themeService.theme() === 'dark') {
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" /><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" /></svg>
+        } @else {
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z" /></svg>
+        }
+      </button>
 
-    @if (authService.isLoggedIn()) {
-      <a routerLink="/profile" routerLinkActive="active" class="user-link">
-        <span class="user-icon">👤</span>{{ authService.getUsername() }}
-      </a>
-      <button class="btn-logout" (click)="logout()">Logout</button>
-    } @else {
-      <a routerLink="/login" routerLinkActive="active">Login</a>
-      <a routerLink="/register" routerLinkActive="active" class="btn-register">Register</a>
-    }
-  </nav>
+      <button
+        class="icon-btn menu-btn"
+        type="button"
+        (click)="toggleMenu()"
+        [attr.aria-expanded]="menuOpen()"
+        aria-controls="main-nav"
+        aria-label="Menu"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          @if (menuOpen()) {
+            <path d="M6 6l12 12M18 6L6 18" />
+          } @else {
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          }
+        </svg>
+      </button>
+    </div>
+
+    <nav id="main-nav" class="nav-links" [class.open]="menuOpen()" (click)="closeMenu()">
+      <a routerLink="/movies" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Movies</a>
+      <a routerLink="/watchlist" routerLinkActive="active">Watchlist</a>
+
+      @if (authService.isLoggedIn()) {
+        <a routerLink="/profile" routerLinkActive="active" class="user-link">
+          <span class="avatar" aria-hidden="true">{{ authService.getUsername().charAt(0).toUpperCase() }}</span>
+          {{ authService.getUsername() }}
+        </a>
+        <button class="btn btn-ghost btn-sm" type="button" (click)="logout()">Log out</button>
+      } @else {
+        <a routerLink="/login" routerLinkActive="active">Sign in</a>
+        <a routerLink="/register" class="btn btn-primary btn-sm">Create account</a>
+      }
+    </nav>
+  </div>
 </header>

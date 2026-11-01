@@ -1,19 +1,20 @@
-<div class="movie-card" (click)="openMovie()">
-  <div class="poster-wrap">
-    <img [src]="movie.poster_url || '/no-poster.svg'" [alt]="movie.title" />
-  </div>
+<a class="movie-card" [routerLink]="['/movies', movie.id]">
+  <div class="poster">
+    <img class="poster-img" [src]="movie.poster_url || '/no-poster.svg'" [alt]="movie.title" loading="lazy" />
 
-  <div class="movie-info">
-    <h3>{{ movie.title }} <span class="year">({{ movie.year }})</span></h3>
+    <span class="rating-badge">{{ movie.rating | rating }}</span>
 
-    <div class="meta-row">
+    <!-- Shown on hover (desktop) -->
+    <div class="overlay" aria-hidden="true">
       @if (movie.genres.length) {
-        <span class="genre-badge">{{ movie.genres[0].name }}</span>
+        <span class="overlay-genres">{{ movie.genres[0].name }}{{ movie.genres.length > 1 ? ' · ' + movie.genres[1].name : '' }}</span>
       }
-
-      <div class="stats">
-        <span class="rating">{{ movie.rating | rating }}</span>
-      </div>
+      <span class="overlay-cta">View details →</span>
     </div>
   </div>
-</div>
+
+  <div class="info">
+    <h3 class="title">{{ movie.title }}</h3>
+    <p class="meta">{{ movie.year }}@if (movie.content_type !== 'movie') { · {{ typeLabel }} }</p>
+  </div>
+</a>

@@ -1,37 +1,40 @@
 <app-navbar></app-navbar>
 
-<div class="page">
-  <h1 class="page-title">{{ isEdit ? 'Edit movie' : 'Add movie' }}</h1>
+<main class="container">
+  <header class="page-head">
+    <span class="eyebrow">Admin</span>
+    <h1 class="page-title">{{ isEdit ? 'Edit movie' : 'Add movie' }}</h1>
+  </header>
 
   @if (loading()) {
     <p class="state-message">Loading movie...</p>
   } @else if (loadError()) {
     <p class="state-message error">{{ loadError() }}</p>
-    <a routerLink="/movies" class="back-link">← Back to movies</a>
+    <p class="state-message"><a routerLink="/movies">← Back to movies</a></p>
   } @else {
     <form class="movie-form" (ngSubmit)="save()" novalidate>
-      <div class="form-main">
+      <div class="form-main card">
         <label class="field">
-          <span>Title *</span>
+          <span class="field-label">Title *</span>
           <input type="text" name="title" [(ngModel)]="form.title" [class.invalid]="fieldError('title')" />
-          @if (fieldError('title')) { <small class="error">{{ fieldError('title') }}</small> }
+          @if (fieldError('title')) { <small class="field-error">{{ fieldError('title') }}</small> }
         </label>
 
         <label class="field">
-          <span>Description *</span>
+          <span class="field-label">Description *</span>
           <textarea name="description" rows="4" [(ngModel)]="form.description" [class.invalid]="fieldError('description')"></textarea>
-          @if (fieldError('description')) { <small class="error">{{ fieldError('description') }}</small> }
+          @if (fieldError('description')) { <small class="field-error">{{ fieldError('description') }}</small> }
         </label>
 
         <div class="row">
           <label class="field">
-            <span>Year *</span>
+            <span class="field-label">Year *</span>
             <input type="number" name="year" [min]="minYear" [max]="maxYear" [(ngModel)]="form.year" [class.invalid]="fieldError('year')" />
-            @if (fieldError('year')) { <small class="error">{{ fieldError('year') }}</small> }
+            @if (fieldError('year')) { <small class="field-error">{{ fieldError('year') }}</small> }
           </label>
 
           <label class="field">
-            <span>Type</span>
+            <span class="field-label">Type</span>
             <select name="content_type" [(ngModel)]="form.content_type">
               @for (type of contentTypes; track type.value) {
                 <option [value]="type.value">{{ type.label }}</option>
@@ -40,50 +43,50 @@
           </label>
 
           <label class="field">
-            <span>Base rating (0–10)</span>
+            <span class="field-label">Base rating (0–10)</span>
             <input type="number" name="base_rating" step="0.1" min="0" max="10" [(ngModel)]="form.base_rating" [class.invalid]="fieldError('base_rating')" />
             <small class="hint">Shown while the movie has no reviews.</small>
-            @if (fieldError('base_rating')) { <small class="error">{{ fieldError('base_rating') }}</small> }
+            @if (fieldError('base_rating')) { <small class="field-error">{{ fieldError('base_rating') }}</small> }
           </label>
         </div>
 
         <label class="field">
-          <span>Poster URL</span>
+          <span class="field-label">Poster URL</span>
           <input type="url" name="poster_url" placeholder="https://..." [(ngModel)]="form.poster_url" (ngModelChange)="onPosterUrlChange()" [class.invalid]="fieldError('poster_url')" />
-          @if (fieldError('poster_url')) { <small class="error">{{ fieldError('poster_url') }}</small> }
+          @if (fieldError('poster_url')) { <small class="field-error">{{ fieldError('poster_url') }}</small> }
         </label>
 
         <label class="field">
-          <span>Trailer URL (YouTube)</span>
+          <span class="field-label">Trailer URL (YouTube)</span>
           <input type="url" name="trailer_url" placeholder="https://www.youtube.com/watch?v=..." [(ngModel)]="form.trailer_url" [class.invalid]="fieldError('trailer_url')" />
-          @if (fieldError('trailer_url')) { <small class="error">{{ fieldError('trailer_url') }}</small> }
+          @if (fieldError('trailer_url')) { <small class="field-error">{{ fieldError('trailer_url') }}</small> }
         </label>
 
         <div class="row">
           <label class="field">
-            <span>Director</span>
+            <span class="field-label">Director</span>
             <input type="text" name="director" [(ngModel)]="form.director" />
           </label>
 
           <label class="field">
-            <span>Country</span>
+            <span class="field-label">Country</span>
             <input type="text" name="country" [(ngModel)]="form.country" />
           </label>
 
           <label class="field">
-            <span>Duration (minutes)</span>
+            <span class="field-label">Duration (minutes)</span>
             <input type="number" name="duration" min="1" [(ngModel)]="form.duration" [class.invalid]="fieldError('duration')" />
-            @if (fieldError('duration')) { <small class="error">{{ fieldError('duration') }}</small> }
+            @if (fieldError('duration')) { <small class="field-error">{{ fieldError('duration') }}</small> }
           </label>
         </div>
 
         <label class="field">
-          <span>Actors</span>
+          <span class="field-label">Actors</span>
           <input type="text" name="actors" placeholder="Actor One, Actor Two" [(ngModel)]="form.actors" />
         </label>
 
         <fieldset class="field genres">
-          <legend>Genres</legend>
+          <legend class="field-label">Genres</legend>
           @for (genre of genres(); track genre.id) {
             <label class="checkbox">
               <input type="checkbox" [checked]="isGenreSelected(genre.id)" (change)="toggleGenre(genre.id)" />
@@ -95,28 +98,28 @@
         </fieldset>
 
         @if (saveError()) {
-          <p class="save-error">{{ saveError() }}</p>
+          <p class="alert alert-error">{{ saveError() }}</p>
         }
 
         <div class="buttons">
-          <button type="submit" class="primary" [disabled]="saving()">
+          <button type="submit" class="btn btn-primary" [disabled]="saving()">
             {{ saving() ? 'Saving...' : (isEdit ? 'Save changes' : 'Create movie') }}
           </button>
-          <a class="secondary" [routerLink]="isEdit ? ['/movies', movieId] : ['/movies']">Cancel</a>
+          <a class="btn btn-ghost" [routerLink]="isEdit ? ['/movies', movieId] : ['/movies']">Cancel</a>
         </div>
       </div>
 
       <div class="preview">
-        <span class="preview-title">Poster preview</span>
+        <span class="field-label">Poster preview</span>
         @if (showPosterPreview) {
-          <img [src]="form.poster_url" alt="Poster preview" (error)="posterBroken = true" />
+          <img class="poster-img" [src]="form.poster_url" alt="Poster preview" (error)="posterBroken = true" />
         } @else {
-          <img src="/no-poster.svg" alt="No poster" />
+          <img class="poster-img" src="/no-poster.svg" alt="No poster" />
           @if (posterBroken) {
-            <small class="error">This image could not be loaded.</small>
+            <small class="field-error">This image could not be loaded.</small>
           }
         }
       </div>
     </form>
   }
-</div>
+</main>

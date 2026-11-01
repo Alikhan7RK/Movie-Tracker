@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-navbar',
@@ -11,9 +12,21 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './navbar.css'
 })
 export class Navbar {
-  constructor(public authService: AuthService) {}
+  // On phones the links are hidden behind the ☰ button
+  menuOpen = signal(false);
+
+  constructor(public authService: AuthService, public themeService: ThemeService) {}
+
+  toggleMenu(): void {
+    this.menuOpen.set(!this.menuOpen());
+  }
+
+  closeMenu(): void {
+    this.menuOpen.set(false);
+  }
 
   logout(): void {
+    this.closeMenu();
     this.authService.logout();
   }
 }

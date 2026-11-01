@@ -2,7 +2,7 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Navbar } from '../../shared/navbar/navbar';
 import { UserProfile } from '../../models/user.model';
 import { AuthService } from '../../services/auth.service';
@@ -31,7 +31,7 @@ function firstErrorMessage(err: any, fallback: string): string {
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, Navbar],
+  imports: [CommonModule, FormsModule, RouterLink, Navbar],
   templateUrl: './profile.html',
   styleUrl: './profile.css'
 })

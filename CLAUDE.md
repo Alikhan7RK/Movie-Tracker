@@ -24,6 +24,13 @@ Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI
 - Auth: on 401 the interceptor calls `AuthService.refreshAccessToken()` (`POST /api/token/refresh/`) once and retries;
   only if refresh fails does it `clearSession('/login')`. Requests in `PUBLIC_URLS` never get a token or a refresh.
 - No new heavy dependencies (no Angular Material, no NgRx) unless asked.
+- Design system: every color, font size, spacing, radius and shadow is a CSS variable in `frontend/src/styles.css`
+  (dark values under `:root, [data-theme='dark']`, light under `[data-theme='light']`). Component CSS uses only `var(--...)`,
+  never raw hex/rgb. Shared classes live there too: `.container`, `.btn` (+ `-primary/-ghost/-danger/-sm/-block`), `.card`,
+  `.field`/`.field-label`/`.field-error`, `.alert-error/-success`, `.chip`, `.rating-text`, `.poster-img`, `.backdrop`, `.auth-*`.
+  Component styles have a 4 kB budget: put reusable styling in styles.css, keep component CSS to layout.
+- Theme: `ThemeService` (signal + `localStorage['theme']`) sets `data-theme` on `<html>`; a small script in `index.html` applies it
+  before Angular boots (no flash). Breakpoints used: 960px (tablet), 760px (navbar menu button), 600px (phone).
 - After backend model changes: `python manage.py makemigrations && python manage.py migrate`.
 - Verify work: `python manage.py check`, `python manage.py test movies`, `ng build`, `ng test --watch=false`.
 
@@ -73,10 +80,9 @@ Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI
 - Custom lists (user-created named lists of movies, beyond the single watchlist).
 
 ### Stage 3 — production
+- ~~Responsive design + dark/light theme~~ — DONE early (cinema redesign, see Conventions).
 - Deployment: backend on Render + PostgreSQL, frontend on Netlify (settings/secrets from env vars, `API_URL` per environment).
 - GitHub Actions CI: backend tests + `ng build` + `ng test` on every push/PR.
-- Responsive design pass (phones/tablets).
-- Dark/light theme toggle.
 
 ### Notes
 - Vitest finds no test files when the project path contains brackets (e.g. `Movie-Tracker-main (2)`): run `ng test` from a path

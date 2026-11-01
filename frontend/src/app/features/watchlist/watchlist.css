@@ -1,154 +1,162 @@
-.watchlist-page {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 32px 20px;
-  color: #ffffff;
+.page-head {
+  margin-bottom: var(--space-5);
 }
 
-.watchlist-page h1 {
-  margin-bottom: 24px;
-  font-size: 32px;
-}
-
-.watchlist-list {
-  display: grid;
-  gap: 20px;
-}
-
-.watchlist-card {
-  display: flex;
-  gap: 20px;
-  background: #121a2a;
-  border: 1px solid #26324a;
-  border-radius: 18px;
-  padding: 18px;
-  align-items: flex-start;
-}
-
-.watchlist-poster {
-  width: 120px;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 12px;
-  flex-shrink: 0;
-}
-
-.watchlist-info {
+.empty {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: flex-start;
+  gap: var(--space-3);
+  max-width: 560px;
 }
 
-.watchlist-info h3 {
+.empty .section-title,
+.empty .hint {
   margin: 0;
-  font-size: 22px;
 }
 
-.watchlist-info h3 a {
-  color: #ffffff;
-  text-decoration: none;
-}
-
-.watchlist-info h3 a:hover {
-  color: #c084fc;
-}
-
-.meta,
-.date {
-  margin: 0;
-  color: #b9c2d0;
-}
-
+/* Pill tabs: All / Planned / Watching / Completed */
 .tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  overflow-x: auto;
+  padding-bottom: var(--space-1);
 }
 
 .tabs button {
-  padding: 8px 16px;
-  border-radius: 999px;
-  border: 1px solid #26324a;
-  background: #121a2a;
-  color: #b9c2d0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 38px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
   cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background-color var(--transition);
+}
+
+.tabs button:hover {
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
 }
 
 .tabs button.active {
-  background: #7c3aed;
-  border-color: #7c3aed;
-  color: #ffffff;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-on-accent);
 }
 
-.actions {
+.tabs button span {
+  font-size: var(--text-xs);
+  opacity: 0.75;
+}
+
+.list {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  gap: var(--space-5);
   align-items: center;
-  gap: 12px;
-  margin-top: 6px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  transition: border-color var(--transition);
 }
 
-.status-label {
-  color: #c084fc;
-  font-weight: 600;
+.row:hover {
+  border-color: var(--color-border-strong);
 }
 
-.status-label select {
-  margin-left: 6px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid #26324a;
-  background: #0f172a;
-  color: #e2e8f0;
-  cursor: pointer;
+.thumb {
+  display: block;
 }
 
-.remove-btn {
-  padding: 6px 14px;
-  border-radius: 8px;
-  border: 1px solid #f87171;
-  background: transparent;
-  color: #f87171;
-  cursor: pointer;
+.thumb .poster-img {
+  border-radius: var(--radius-sm);
 }
 
-.remove-btn:hover {
-  background: rgba(248, 113, 113, 0.12);
+.row-info h3 {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
 }
 
-.info-text {
-  color: #cfd6e4;
+.row-info h3 a {
+  color: var(--color-text);
 }
 
-.error-text {
-  color: #ff7b7b;
+.row-info h3 a:hover {
+  color: var(--color-accent-text);
+  text-decoration: none;
 }
 
-.empty-state {
-  background: #121a2a;
-  border: 1px solid #26324a;
-  border-radius: 18px;
-  padding: 32px;
-  text-align: center;
+.meta {
+  margin: var(--space-1) 0 0;
+  display: flex;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
-.empty-state h2 {
-  margin-bottom: 10px;
+.added {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-faint);
+  font-size: var(--text-xs);
 }
 
-.empty-state p {
-  color: #b9c2d0;
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
-@media (max-width: 700px) {
-  .watchlist-card {
-    flex-direction: column;
+.status select {
+  width: 150px;
+  min-height: 34px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.status select[data-status='completed'] {
+  border-color: var(--color-success);
+}
+
+.status select[data-status='watching'] {
+  border-color: var(--color-accent);
+}
+
+/* Phone: actions go under the title */
+@media (max-width: 600px) {
+  .row {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: var(--space-3) var(--space-4);
+    align-items: start;
   }
 
-  .watchlist-poster {
+  .row-info h3 {
+    font-size: var(--text-md);
+  }
+
+  .row-actions {
+    grid-column: 1 / -1;
+  }
+
+  .status {
+    flex: 1;
+  }
+
+  .status select {
     width: 100%;
-    max-width: 240px;
-    height: auto;
   }
 }

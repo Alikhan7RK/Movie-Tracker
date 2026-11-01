@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 
 import { MovieList } from './movie-list';
 import { API_URL } from '../../../core/api.config';
+import { Movie } from '../../../models/movie.model';
 
 describe('MovieList', () => {
   let component: MovieList;
@@ -12,7 +13,9 @@ describe('MovieList', () => {
   let httpMock: HttpTestingController;
 
   const moviesUrl = `${API_URL}/movies/`;
-  const page = (count: number, totalPages: number) => ({ count, total_pages: totalPages, next: null, previous: null, results: [] });
+  const page = (count: number, totalPages: number, results: Movie[] = []) =>
+    ({ count, total_pages: totalPages, next: null, previous: null, results });
+  const bestMovie = { id: 7, title: 'Best', year: 1994, rating: '9.3', genres: [], content_type: 'movie' } as unknown as Movie;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -26,6 +29,13 @@ describe('MovieList', () => {
     component = fixture.componentInstance;
     fixture.detectChanges();
     httpMock.expectOne(`${API_URL}/genres/`).flush([]);
+    // Separate request for the top rated movie shown in the banner
+    httpMock.expectOne((r) => r.url === moviesUrl && r.params.get('ordering') === '-rating').flush(page(1, 1, [bestMovie]));
+  });
+
+  it('shows the best rated movie in the banner', () => {
+    httpMock.expectOne((r) => r.url === moviesUrl).flush(page(0, 1));
+    expect(component.topMovie()?.title).toBe('Best');
   });
 
   afterEach(() => httpMock.verify());

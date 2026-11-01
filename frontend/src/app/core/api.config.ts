@@ -1,2 +1,5 @@
-// Base URL of the Django REST API. Change it here and every service will use the new address.
-export const API_URL = 'http://127.0.0.1:8000/api';
+import { environment } from '../../environments/environment';
+
+// Base URL of the Django REST API. Every service imports it from here.
+// The value comes from src/environments: localhost for `ng serve`, the Render URL for `ng build`.
+export const API_URL = environment.apiUrl;

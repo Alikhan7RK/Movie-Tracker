@@ -1,0 +1,16 @@
+# Netlify reads this file automatically, so the build settings don't have to be typed in by hand (DEPLOY.md, step 5).
+
+[build]
+  base = "frontend"                                   # the Angular app lives in this folder
+  command = "npm run build"                           # = ng build (production, uses environment.ts)
+  publish = "dist/movie-tracker-frontend/browser"     # relative to base
+
+[build.environment]
+  NODE_VERSION = "22"                                 # Angular 21 needs Node 20.19+, 22.12+ or 24
+
+# Angular handles routes like /movies/3 in the browser.
+# Without this, opening or refreshing such a link on Netlify would show "Page not found".
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

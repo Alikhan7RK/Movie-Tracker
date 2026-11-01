@@ -10,7 +10,8 @@ Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI
   - All API routes live under `/api/` in `backend/movies/urls.py`; views are APIView classes / @api_view functions in `views.py`
 - frontend/: Angular 21, standalone components, new control flow (`@if`, `@for`), FormsModule/ngModel, functional interceptor + guard
   - `cd frontend && npm install && ng serve` (http://localhost:4200)
-  - API base URL lives in one place: `frontend/src/app/core/api.config.ts` (`API_URL`). Import it, never hard-code the URL.
+  - API base URL: `API_URL` in `frontend/src/app/core/api.config.ts`, read from `src/environments/environment*.ts`
+    (`.development.ts` = localhost for `ng serve`/`ng test`, `environment.ts` = Render URL for `ng build`). Never hard-code it.
   - The app is zoneless (no zone.js): keep component state that is set inside `subscribe()` in signals, or the view won't update.
 
 ## Conventions
@@ -80,11 +81,17 @@ Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI
 - Custom lists (user-created named lists of movies, beyond the single watchlist).
 
 ### Stage 3 — production
+- ~~CI + deployment prep~~ — DONE: `.github/workflows/ci.yml` (backend check/tests/deploy-check/collectstatic, frontend
+  `npm ci`/test/build on push+PR to main). Settings read env vars (see below); `backend/build.sh`; `netlify.toml`; DEPLOY.md.
+  Not deployed yet — the user follows DEPLOY.md.
 - ~~Responsive design + dark/light theme~~ — DONE early (cinema redesign, see Conventions).
-- Deployment: backend on Render + PostgreSQL, frontend on Netlify (settings/secrets from env vars, `API_URL` per environment).
-- GitHub Actions CI: backend tests + `ng build` + `ng test` on every push/PR.
 
 ### Notes
+- Production config is env-driven (`movie_tracker/settings.py`): `SECRET_KEY`, `DEBUG` (defaults off when Render's `RENDER`
+  var exists), `ALLOWED_HOSTS` (+ `RENDER_EXTERNAL_HOSTNAME` auto-added), `CORS_ALLOWED_ORIGINS`, `DATABASE_URL`
+  (absent -> SQLite). DEBUG off with the dev key -> ImproperlyConfigured. Free Render has no SSH: admin comes from
+  `DJANGO_SUPERUSER_*` via `manage.py create_admin` (idempotent, never resets a password). Python pinned in `.python-version`.
+- New Python packages go into `backend/requirements.txt` with exact versions; CI installs from it.
 - Vitest finds no test files when the project path contains brackets (e.g. `Movie-Tracker-main (2)`): run `ng test` from a path
   without `(` `)` (a clone, or a junction/symlink to the folder).
 - Every new backend behaviour gets a test in `movies/tests.py`; every new component gets a spec with the providers it needs.

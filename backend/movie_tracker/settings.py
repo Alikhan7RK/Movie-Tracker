@@ -10,22 +10,51 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+# Settings come from environment variables in production (see DEPLOY.md).
+# Without them the values below are used, so local development works as before (SQLite, DEBUG on).
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-$cbddv+u32sh#ei_t@5w0um#)msc+5o)h(d*ddrq2253--4x$9'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+def env_bool(name, default):
+    value = os.environ.get(name)
+    if value is None or value == '':
+        return default
+    return value.strip().lower() in ('1', 'true', 'yes', 'on')
 
-ALLOWED_HOSTS = []
+
+def env_list(name, default):
+    # "a.com, b.com" -> ['a.com', 'b.com']
+    value = os.environ.get(name)
+    if not value:
+        return default
+    return [item.strip() for item in value.split(',') if item.strip()]
+
+
+# Only for local development. This key is public (it's in git), so production must set its own SECRET_KEY.
+INSECURE_DEV_SECRET_KEY = 'django-insecure-$cbddv+u32sh#ei_t@5w0um#)msc+5o)h(d*ddrq2253--4x$9'
+SECRET_KEY = os.environ.get('SECRET_KEY') or INSECURE_DEV_SECRET_KEY
+
+# Render sets RENDER=true on its servers, so DEBUG is off there even if the DEBUG variable is forgotten
+DEBUG = env_bool('DEBUG', default=not os.environ.get('RENDER'))
+
+if not DEBUG and SECRET_KEY == INSECURE_DEV_SECRET_KEY:
+    raise ImproperlyConfigured('Set the SECRET_KEY environment variable when DEBUG is off.')
+
+ALLOWED_HOSTS = env_list('ALLOWED_HOSTS', [])
+
+# Render gives every service a hostname like movie-tracker-api.onrender.com and puts it in this variable
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 
 # Application definition
@@ -48,6 +77,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    # Serves the collected static files (admin panel CSS/JS) in production, right after SecurityMiddleware
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -79,12 +110,19 @@ WSGI_APPLICATION = 'movie_tracker.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require -> PostgreSQL (production).
+# Not set -> the local SQLite file.
+if os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(conn_max_age=600, conn_health_checks=True)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -122,10 +160,28 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+# `collectstatic` copies all static files here; WhiteNoise serves them from this folder
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:4200',
-]
+if not DEBUG:
+    # Compressed files with a hash in the name, so browsers can cache them forever.
+    # Only in production: it needs `collectstatic` to have run first.
+    STORAGES = {
+        'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+        'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+    }
+
+# Frontend addresses allowed to call the API, e.g. "https://cinetrack.netlify.app" (no slash at the end)
+CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS', ['http://localhost:4200'])
+
+if not DEBUG:
+    # HTTPS settings for production. Render handles HTTPS and tells Django through this header.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = env_bool('SECURE_SSL_REDIRECT', True)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30  # browsers use HTTPS only for this site for 30 days
+    SECURE_CONTENT_TYPE_NOSNIFF = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

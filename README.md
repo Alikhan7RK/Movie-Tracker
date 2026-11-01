@@ -1,5 +1,7 @@
 # 🎬 Movie Tracker (CineTrack)
 
+[![CI](https://github.com/Alikhan7RK/Movie-Tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/Alikhan7RK/Movie-Tracker/actions/workflows/ci.yml)
+
 A full-stack web application for browsing movies, writing reviews and keeping a personal watchlist.
 Built for the KBTU Web Development course with **Angular** (frontend) and **Django REST Framework** (backend),
 connected through a REST API with **JWT authentication**.
@@ -75,7 +77,9 @@ connected through a REST API with **JWT authentication**.
 |---|---|
 | Frontend | Angular 21 (standalone components, signals, `@if`/`@for` control flow, HttpClient, Router, FormsModule) |
 | Backend | Django 6, Django REST Framework, `djangorestframework-simplejwt`, `django-cors-headers` |
-| Database | SQLite |
+| Database | SQLite locally, PostgreSQL in production (`dj-database-url`, `psycopg`) |
+| Production | `gunicorn`, `whitenoise`; Render (API) + Neon (database) + Netlify (frontend) |
+| CI | GitHub Actions: backend tests, frontend tests, production build on every push |
 | Tests | Django `APITestCase` (backend), Vitest (frontend, `ng test`) |
 
 ---
@@ -107,13 +111,14 @@ ng serve        # or: npx ng serve
 
 Open http://localhost:4200. Log in with the superuser to see the **Add movie**, **Edit** and **Delete** buttons.
 
-The API address is set in one place: `frontend/src/app/core/api.config.ts`.
+The API address comes from `frontend/src/environments/`: `environment.development.ts` (localhost, used by `ng serve`)
+and `environment.ts` (the deployed backend, used by `ng build`). Services import it via `src/app/core/api.config.ts`.
 
 ### 3. Running the tests
 
 ```bash
 cd backend
-python manage.py test movies        # 66 API tests: auth + token refresh, profile editing, movie search/filters/
+python manage.py test movies        # 69 tests: auth + token refresh, profile editing, movie search/filters/
                                     # sorting/pagination, permissions, reviews + rating, watchlist, seed
 
 cd frontend
@@ -122,6 +127,18 @@ ng test --watch=false               # component, interceptor, pipe and helper te
 
 > **Note:** Vitest cannot find test files if the project path contains brackets, e.g. `Movie-Tracker-main (2)`.
 > Clone or move the project to a folder without `(` `)` in its path before running `ng test`.
+
+---
+
+## ☁️ Deployment
+
+The app can run for free on **Neon** (PostgreSQL) + **Render** (Django API) + **Netlify** (Angular).
+Step-by-step guide for beginners: **[DEPLOY.md](DEPLOY.md)**.
+
+In short: the backend reads its settings from environment variables (`DATABASE_URL`, `SECRET_KEY`,
+`CORS_ALLOWED_ORIGINS`, ...). Without them it falls back to the local defaults (SQLite, `DEBUG` on),
+so nothing changes for local development. `backend/build.sh` runs `collectstatic`, `migrate`, `seed_movies`
+and `create_admin` on every deploy.
 
 ---
 
@@ -202,7 +219,8 @@ Movie-Tracker/
 │   │   ├── urls.py             # all /api/ routes
 │   │   ├── tests.py            # API tests
 │   │   ├── migrations/
-│   │   └── management/commands/seed_movies.py
+│   │   └── management/commands/  # seed_movies, create_admin (admin from env vars)
+│   ├── build.sh                # Render build: install, collectstatic, migrate, seed, create admin
 │   └── requirements.txt
 └── frontend/
     ├── public/                 # static files (no-poster.svg placeholder)

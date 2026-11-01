@@ -1,5 +1,7 @@
+import os
 from decimal import Decimal
 from io import StringIO
+from unittest import mock
 
 from django.contrib.auth.models import User
 from django.core.management import call_command
@@ -604,3 +606,44 @@ class SeedMoviesTests(APITestCase):
 
         inception.refresh_from_db()
         self.assertEqual(inception.rating, Decimal('6.0'))
+
+
+class CreateAdminTests(APITestCase):
+    env = {
+        'DJANGO_SUPERUSER_USERNAME': 'boss',
+        'DJANGO_SUPERUSER_PASSWORD': 'strong-pass-123',
+        'DJANGO_SUPERUSER_EMAIL': 'boss@example.com',
+    }
+
+    def test_creates_admin_from_environment(self):
+        with mock.patch.dict(os.environ, self.env):
+            call_command('create_admin', stdout=StringIO())
+
+        user = User.objects.get(username='boss')
+        self.assertTrue(user.is_staff)
+        self.assertTrue(user.is_superuser)
+        self.assertTrue(user.check_password('strong-pass-123'))
+        self.assertEqual(user.email, 'boss@example.com')
+
+    def test_running_again_keeps_the_existing_admin(self):
+        with mock.patch.dict(os.environ, self.env):
+            call_command('create_admin', stdout=StringIO())
+        User.objects.filter(username='boss').update(email='changed@example.com')
+
+        with mock.patch.dict(os.environ, {**self.env, 'DJANGO_SUPERUSER_PASSWORD': 'other-pass-456'}):
+            call_command('create_admin', stdout=StringIO())
+
+        user = User.objects.get(username='boss')
+        self.assertEqual(User.objects.filter(username='boss').count(), 1)
+        self.assertTrue(user.check_password('strong-pass-123'))  # password is not overwritten
+        self.assertEqual(user.email, 'changed@example.com')
+
+    def test_skips_when_variables_are_missing(self):
+        clean_env = {k: v for k, v in os.environ.items() if not k.startswith('DJANGO_SUPERUSER_')}
+        out = StringIO()
+
+        with mock.patch.dict(os.environ, clean_env, clear=True):
+            call_command('create_admin', stdout=out)
+
+        self.assertEqual(User.objects.count(), 0)
+        self.assertIn('skipping', out.getvalue())

@@ -25,6 +25,10 @@ class Movie(models.Model):
     trailer_url = models.URLField(blank=True, null=True)
     poster_url = models.URLField(blank=True, null=True)
     content_type = models.CharField(max_length=20, choices=CONTENT_TYPES, default='movie')
+    director = models.CharField(max_length=255, blank=True, default='')
+    actors = models.TextField(blank=True, default='')
+    country = models.CharField(max_length=100, blank=True, default='')
+    duration = models.PositiveIntegerField(blank=True, null=True, help_text='Length in minutes')
     genres = models.ManyToManyField(Genre, related_name='movies', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

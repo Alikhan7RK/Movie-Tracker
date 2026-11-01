@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { Navbar } from '../../shared/navbar/navbar';
 import { UserProfile } from '../../models/user.model';
 import { AuthService } from '../../services/auth.service';
+import { API_URL } from '../../core/api.config';
 
 @Component({
   selector: 'app-profile',
@@ -33,7 +34,7 @@ export class Profile {
   }
 
   loadProfile(): void {
-    this.http.get<UserProfile>('http://127.0.0.1:8000/api/profile/').subscribe({
+    this.http.get<UserProfile>(`${API_URL}/profile/`).subscribe({
       next: (data) => {
         this.profile = data;
         this.loading = false;

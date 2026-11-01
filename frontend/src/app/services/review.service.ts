@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from '../core/api.config';
 
 export interface Review {
   id: number;
@@ -16,7 +17,7 @@ export interface Review {
   providedIn: 'root'
 })
 export class ReviewService {
-  private apiUrl = 'http://127.0.0.1:8000/api/reviews/';
+  private apiUrl = `${API_URL}/reviews/`;
 
   constructor(private http: HttpClient) {}
 

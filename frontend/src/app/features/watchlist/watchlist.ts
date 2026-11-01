@@ -2,13 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Navbar } from '../../shared/navbar/navbar';
+import { RatingPipe } from '../../shared/rating.pipe';
 import { WatchlistService } from '../../services/watchlist.service';
 import { WatchlistItem } from '../../models/watchlist.model';
 
 @Component({
   selector: 'app-watchlist',
   standalone: true,
-  imports: [CommonModule, Navbar],
+  imports: [CommonModule, Navbar, RatingPipe],
   templateUrl: './watchlist.html',
   styleUrl: './watchlist.css'
 })

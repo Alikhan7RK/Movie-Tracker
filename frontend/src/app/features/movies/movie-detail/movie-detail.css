@@ -307,3 +307,12 @@ button {
 .watchlist-btn:hover {
   background: #6d28d9;
 }
+
+.state-message {
+  color: #94a3b8;
+  font-size: 18px;
+}
+
+.state-message.error {
+  color: #f87171;
+}

@@ -8,10 +8,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 
 
-from .models import Movie, Review, Watchlist
+from .models import Genre, Movie, Review, Watchlist
 from .serializers import (
     RegisterSerializer,
     LoginSerializer,
+    GenreSerializer,
     MovieSerializer,
     ReviewSerializer,
     WatchlistSerializer,
@@ -86,10 +87,19 @@ def profile_view(request):
             'id': request.user.id,
             'username': request.user.username,
             'email': request.user.email,
+            'is_staff': request.user.is_staff,
             'reviews': reviews_data,
         },
         status=status.HTTP_200_OK
     )
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def genre_list_view(request):
+    genres = Genre.objects.all().order_by('name')
+    serializer = GenreSerializer(genres, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 #@api_view(['POST'])

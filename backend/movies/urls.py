@@ -3,6 +3,7 @@ from .views import (
     register_view,
     login_view,
     profile_view,
+    genre_list_view,
     LogoutView,
     MovieListCreateView,
     MovieDetailView,
@@ -15,6 +16,8 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('profile/', profile_view, name='profile'),
     path('logout/', LogoutView.as_view(), name='logout'),
+
+    path('genres/', genre_list_view, name='genre-list'),
 
     path('movies/', MovieListCreateView.as_view(), name='movie-list-create'),
     path('movies/<int:pk>/', MovieDetailView.as_view(), name='movie-detail'),

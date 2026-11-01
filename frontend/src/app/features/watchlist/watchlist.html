@@ -31,7 +31,7 @@
           <div class="watchlist-info">
             <h3>{{ item.movie_title }}</h3>
             <p class="meta">Year: {{ item.movie_year }}</p>
-            <p class="meta">Rating: ★ {{ item.movie_rating }}</p>
+            <p class="meta">Rating: {{ item.movie_rating | rating }}</p>
             <p class="status">Status: {{ item.status }}</p>
             <p class="date">Added: {{ item.added_at | date:'mediumDate' }}</p>
           </div>

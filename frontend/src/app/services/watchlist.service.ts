@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from '../core/api.config';
 import { WatchlistItem } from '../models/watchlist.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WatchlistService {
-  private apiUrl = 'http://127.0.0.1:8000/api/watchlist/';
+  private apiUrl = `${API_URL}/watchlist/`;
 
   constructor(private http: HttpClient) {}
 

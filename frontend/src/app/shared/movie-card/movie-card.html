@@ -1,16 +1,22 @@
 <div class="movie-card" (click)="openMovie()">
   <div class="poster-wrap">
-    <img [src]="movie.image" />
+    @if (movie.poster_url) {
+      <img [src]="movie.poster_url" [alt]="movie.title" />
+    } @else {
+      <div class="no-poster">No poster</div>
+    }
   </div>
 
   <div class="movie-info">
-    <h3>{{ movie.title }}</h3>
+    <h3>{{ movie.title }} <span class="year">({{ movie.year }})</span></h3>
 
     <div class="meta-row">
-      <span class="genre-badge">{{ movie.genre }}</span>
+      @if (movie.genres.length) {
+        <span class="genre-badge">{{ movie.genres[0].name }}</span>
+      }
 
       <div class="stats">
-        <span class="rating">★ {{ (movie.rating / 2).toFixed(1) }}</span>
+        <span class="rating">{{ movie.rating | rating }}</span>
       </div>
     </div>
   </div>

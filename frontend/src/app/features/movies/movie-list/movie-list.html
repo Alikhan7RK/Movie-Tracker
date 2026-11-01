@@ -16,17 +16,28 @@
     <div class="filter-box">
       <select [(ngModel)]="selectedGenre">
         <option value="">Filter by Genre</option>
-        @for (genre of genres; track genre) {
-          <option [value]="genre">{{ genre }}</option>
+        @for (genre of genres(); track genre.id) {
+          <option [value]="genre.name">{{ genre.name }}</option>
         }
       </select>
       <span class="arrow">⌄</span>
     </div>
   </div>
 
-  <div class="movies-grid">
-    @for (movie of filteredMovies; track movie.id) {
-      <app-movie-card [movie]="movie"></app-movie-card>
-    }
-  </div>
+  @if (loading()) {
+    <p class="state-message">Loading movies...</p>
+  } @else if (error()) {
+    <div class="state-message error">
+      <p>{{ error() }}</p>
+      <button (click)="loadMovies()">Try again</button>
+    </div>
+  } @else {
+    <div class="movies-grid">
+      @for (movie of filteredMovies; track movie.id) {
+        <app-movie-card [movie]="movie"></app-movie-card>
+      } @empty {
+        <p class="state-message">No movies found.</p>
+      }
+    </div>
+  }
 </div>

@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser, SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
@@ -102,7 +102,11 @@ def profile_view(request):
 
 
 class MovieListCreateView(APIView):
-    permission_classes = [AllowAny]
+    # Anyone can read movies, only admins (is_staff) can create them
+    def get_permissions(self):
+        if self.request.method in SAFE_METHODS:
+            return [AllowAny()]
+        return [IsAdminUser()]
 
     def get(self, request):
         movies = Movie.objects.all().order_by('-created_at')
@@ -120,7 +124,11 @@ class MovieListCreateView(APIView):
 
 
 class MovieDetailView(APIView):
-    permission_classes = [AllowAny]
+    # Anyone can read a movie, only admins (is_staff) can edit or delete it
+    def get_permissions(self):
+        if self.request.method in SAFE_METHODS:
+            return [AllowAny()]
+        return [IsAdminUser()]
 
     def get_object(self, pk):
         try:

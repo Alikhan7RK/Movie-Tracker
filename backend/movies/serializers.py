@@ -39,7 +39,8 @@ class MovieSerializer(serializers.ModelSerializer):
         queryset=Genre.objects.all(),
         many=True,
         write_only=True,
-        source='genres'
+        source='genres',
+        required=False
     )
 
     class Meta:

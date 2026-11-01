@@ -8,23 +8,24 @@
 .profile-header {
   display: flex;
   align-items: center;
-  gap: var(--space-5);
+  gap: var(--space-6);
   padding-bottom: var(--space-6);
   border-bottom: 1px solid var(--color-border);
 }
 
+/* Big round avatar: orange gradient with a soft orange glow */
 .avatar {
-  width: 88px;
-  height: 88px;
+  width: 128px;
+  height: 128px;
   flex-shrink: 0;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--color-accent);
+  background: var(--gradient-accent);
   color: var(--color-on-accent);
-  font-size: var(--text-2xl);
+  font-size: 3.5rem;
   font-weight: var(--weight-black);
-  box-shadow: 0 0 0 4px var(--color-bg), 0 0 0 6px var(--color-accent-soft);
+  box-shadow: var(--glow-poster), 0 0 0 6px var(--color-accent-soft);
 }
 
 .profile-info {
@@ -35,6 +36,7 @@
 }
 
 .profile-info .page-title {
+  font-size: var(--text-3xl);
   overflow-wrap: anywhere;
 }
 
@@ -58,10 +60,10 @@
 }
 
 .header-actions {
-  margin-left: auto;
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+  margin-top: var(--space-3);
 }
 
 .settings {
@@ -85,11 +87,23 @@
   gap: var(--space-3);
 }
 
+/* Empty "My reviews": picture icon + text, centered */
 .empty {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-3);
+  padding: var(--space-7) var(--space-5);
+  text-align: center;
+}
+
+.empty-icon {
+  width: 56px;
+  height: 56px;
+  fill: none;
+  stroke: var(--color-text-faint);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
 }
 
 .empty .hint {
@@ -104,10 +118,11 @@
 
 .review-card {
   padding: var(--space-4) var(--space-5);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--glass-border);
   border-left: 3px solid var(--color-accent);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  box-shadow: var(--shadow-card);
 }
 
 .review-top {
@@ -150,13 +165,8 @@
   }
 
   .avatar {
-    width: 64px;
-    height: 64px;
-    font-size: var(--text-xl);
-  }
-
-  .header-actions {
-    margin-left: 0;
-    width: 100%;
+    width: 88px;
+    height: 88px;
+    font-size: var(--text-2xl);
   }
 }

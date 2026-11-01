@@ -43,8 +43,8 @@
       <a routerLink="/watchlist" routerLinkActive="active">Watchlist</a>
 
       @if (authService.isLoggedIn()) {
-        <a routerLink="/profile" routerLinkActive="active" class="user-link">
-          <span class="avatar" aria-hidden="true">{{ authService.getUsername().charAt(0).toUpperCase() }}</span>
+        <a routerLink="/profile" routerLinkActive="active" class="user-pill">
+          <span class="avatar-dot" aria-hidden="true">{{ authService.getUsername().charAt(0).toUpperCase() }}</span>
           {{ authService.getUsername() }}
         </a>
         <button class="btn btn-ghost btn-sm" type="button" (click)="logout()">Log out</button>

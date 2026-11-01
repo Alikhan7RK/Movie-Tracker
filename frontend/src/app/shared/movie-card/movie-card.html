@@ -1,16 +1,7 @@
 <a class="movie-card" [routerLink]="['/movies', movie.id]">
   <div class="poster">
     <img class="poster-img" [src]="movie.poster_url || '/no-poster.svg'" [alt]="movie.title" loading="lazy" />
-
     <span class="rating-badge">{{ movie.rating | rating }}</span>
-
-    <!-- Shown on hover (desktop) -->
-    <div class="overlay" aria-hidden="true">
-      @if (movie.genres.length) {
-        <span class="overlay-genres">{{ movie.genres[0].name }}{{ movie.genres.length > 1 ? ' · ' + movie.genres[1].name : '' }}</span>
-      }
-      <span class="overlay-cta">View details →</span>
-    </div>
   </div>
 
   <div class="info">

@@ -9,6 +9,7 @@ import { RatingPipe } from '../../../shared/rating.pipe';
 import { MovieCard } from '../../../shared/movie-card/movie-card';
 import { MovieService } from '../../../services/movie.service';
 import { AuthService } from '../../../services/auth.service';
+import { WatchlistService } from '../../../services/watchlist.service';
 import { CONTENT_TYPES, ContentType, Genre, MOVIE_ORDERINGS, Movie } from '../../../models/movie.model';
 
 // Wait this long after the last key press before searching
@@ -30,6 +31,7 @@ export class MovieList {
   contentTypes = CONTENT_TYPES;
   orderings = MOVIE_ORDERINGS;
   isAdmin = false;
+  isLoggedIn = false;
 
   // Signals: when their value changes, Angular redraws the page
   // (this app has no zone.js, so plain fields set inside subscribe() would not update the view)
@@ -42,6 +44,8 @@ export class MovieList {
   totalCount = signal(0);
   // Best rated movie, shown in the big banner at the top of page 1
   topMovie = signal<Movie | null>(null);
+  // "+ Add to watchlist" in the banner: idle -> adding -> added (or error)
+  topWatchlistState = signal<'idle' | 'adding' | 'added' | 'error'>('idle');
 
   // Page buttons around the current page, e.g. page 6 of 10 -> [4, 5, 6, 7, 8]
   pageNumbers = computed(() => {
@@ -54,7 +58,11 @@ export class MovieList {
   private request?: Subscription;
   private destroyRef = inject(DestroyRef);
 
-  constructor(private movieService: MovieService, private authService: AuthService) {}
+  constructor(
+    private movieService: MovieService,
+    private authService: AuthService,
+    private watchlistService: WatchlistService
+  ) {}
 
   // True when the user is searching or filtering: the banner is hidden then, so results are visible right away
   get isFiltering(): boolean {
@@ -63,6 +71,7 @@ export class MovieList {
 
   ngOnInit() {
     this.isAdmin = this.authService.isAdmin();
+    this.isLoggedIn = this.authService.isLoggedIn();
     this.loadMovies();
 
     // If genres or the top movie fail to load, the page still works without them
@@ -79,6 +88,19 @@ export class MovieList {
       .subscribe(() => this.loadMovies(1));
 
     this.destroyRef.onDestroy(() => this.request?.unsubscribe());
+  }
+
+  addTopToWatchlist() {
+    const top = this.topMovie();
+    if (!top) {
+      return;
+    }
+    this.topWatchlistState.set('adding');
+    this.watchlistService.addToWatchlist(top.id).subscribe({
+      next: () => this.topWatchlistState.set('added'),
+      // 400 = it is already in the watchlist, which is what the user wanted anyway
+      error: (err) => this.topWatchlistState.set(err.status === 400 ? 'added' : 'error')
+    });
   }
 
   onSearchChange(value: string) {

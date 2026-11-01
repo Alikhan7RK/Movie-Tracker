@@ -96,21 +96,23 @@
   margin-left: var(--space-2);
 }
 
-.user-link {
-  text-transform: none !important;
-  letter-spacing: 0 !important;
+/* Logged-in user: pill with the initial avatar + username */
+.nav-links a.user-pill {
+  margin-left: var(--space-2);
+  padding: 4px var(--space-4) 4px 4px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg);
+  color: var(--color-text);
+  text-transform: none;
+  letter-spacing: 0;
 }
 
-.avatar {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-black);
+.nav-links a.user-pill:hover,
+.nav-links a.user-pill.active {
+  border-color: var(--color-accent);
+  box-shadow: none;
+  border-radius: var(--radius-pill);
 }
 
 .nav-right {
@@ -177,6 +179,12 @@
 
   .nav-links a:not(.btn) {
     padding: var(--space-3);
+  }
+
+  .nav-links a.user-pill {
+    align-self: flex-start;
+    margin: var(--space-2) 0 0;
+    padding: 4px var(--space-4) 4px 4px;
   }
 
   .nav-links a.active {

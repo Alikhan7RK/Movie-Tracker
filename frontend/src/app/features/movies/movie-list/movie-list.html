@@ -4,28 +4,35 @@
   @if (page() === 1 && !isFiltering) {
     <section class="hero">
       @if (top.poster_url) {
-        <div class="backdrop" aria-hidden="true"><img [src]="top.poster_url" alt="" /></div>
+        <div class="hero-bg" aria-hidden="true"><img [src]="top.poster_url" alt="" /></div>
       }
 
       <div class="hero-inner">
-        <a class="hero-poster" [routerLink]="['/movies', top.id]">
-          <img class="poster-img" [src]="top.poster_url || '/no-poster.svg'" [alt]="top.title" />
-        </a>
+        <span class="eyebrow">Top rated on CineTrack</span>
+        <h1 class="hero-title">{{ top.title }}</h1>
 
-        <div class="hero-text">
-          <span class="eyebrow">★ Top rated on CineTrack</span>
-          <h1 class="hero-title">{{ top.title }}</h1>
-          <p class="hero-meta">
-            <span class="rating-text">{{ top.rating | rating }}</span>
-            <span>{{ top.year }}</span>
-            @if (top.duration) { <span>{{ top.duration }} min</span> }
-            @if (top.director) { <span>Directed by {{ top.director }}</span> }
-          </p>
-          <p class="hero-desc">{{ top.description }}</p>
-          <div class="hero-actions">
-            <a class="btn btn-primary" [routerLink]="['/movies', top.id]">View details</a>
-          </div>
+        <div class="hero-chips">
+          <span class="chip chip-lg chip-rating">{{ top.rating | rating }}</span>
+          <span class="chip chip-lg">{{ top.year }}</span>
+          @if (top.duration) { <span class="chip chip-lg">{{ top.duration }} min</span> }
+          @if (top.genres.length) { <span class="chip chip-lg">{{ top.genres[0].name }}</span> }
         </div>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" [routerLink]="['/movies', top.id]">View details</a>
+          @if (!isLoggedIn) {
+            <a class="btn btn-outline" routerLink="/login">+ Add to watchlist</a>
+          } @else if (topWatchlistState() === 'added') {
+            <a class="btn btn-outline" routerLink="/watchlist">✓ In your watchlist</a>
+          } @else {
+            <button class="btn btn-outline" (click)="addTopToWatchlist()" [disabled]="topWatchlistState() === 'adding'">
+              + Add to watchlist
+            </button>
+          }
+        </div>
+        @if (topWatchlistState() === 'error') {
+          <p class="alert alert-error">Could not add the movie to your watchlist.</p>
+        }
       </div>
     </section>
   }

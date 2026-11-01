@@ -1,70 +1,75 @@
-/* ---------- Hero: the top rated movie ---------- */
+/* ---------- Hero: the top rated movie, full width ---------- */
 .hero {
   position: relative;
   overflow: hidden;
-  border-bottom: 1px solid var(--color-border);
+  min-height: 460px;
+  display: flex;
+  align-items: center;
+}
+
+/* The poster, big and dark, filling the right side; it fades into the page on the left and at the bottom */
+.hero-bg {
+  position: absolute;
+  inset: 0 0 0 30%;
+}
+
+.hero-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  filter: blur(4px) saturate(1.3);
+  transform: scale(1.06);
+  opacity: var(--hero-image-opacity);
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, var(--color-bg) 25%, transparent 75%),
+    linear-gradient(180deg, transparent 55%, var(--color-bg) 100%);
+  pointer-events: none;
 }
 
 .hero-inner {
   position: relative;
   z-index: 1;
+  width: 100%;
   max-width: var(--container-width);
   margin: 0 auto;
-  padding: var(--space-7) var(--page-gutter);
-  display: grid;
-  grid-template-columns: 230px 1fr;
-  gap: var(--space-6);
-  align-items: center;
-}
-
-.hero-poster {
-  display: block;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  transition: transform var(--transition);
-}
-
-.hero-poster:hover {
-  transform: scale(1.02);
-}
-
-.hero-text {
+  padding: var(--space-8) var(--page-gutter) var(--space-7);
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  max-width: 680px;
+  align-items: flex-start;
+  gap: var(--space-4);
 }
 
 .hero-title {
-  font-size: var(--text-3xl);
+  font-size: var(--text-hero);
   font-weight: var(--weight-black);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  max-width: 14ch;
 }
 
-.hero-meta {
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
-
-.hero-desc {
-  margin: 0;
-  color: var(--color-text-muted);
-  line-height: 1.65;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
+.hero-chips,
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.hero-actions {
   gap: var(--space-3);
   margin-top: var(--space-2);
+}
+
+.hero-actions .btn {
+  min-height: 48px;
+  padding: 0 var(--space-6);
+  font-size: var(--text-md);
 }
 
 /* ---------- Browse ---------- */
@@ -157,24 +162,33 @@
   .search-box {
     grid-column: 1 / -1;
   }
-
-  .hero-inner {
-    grid-template-columns: 170px 1fr;
-    gap: var(--space-5);
-    padding: var(--space-6) var(--page-gutter);
-  }
 }
 
 /* ---------- Phone ---------- */
 @media (max-width: 600px) {
-  .hero-inner {
-    grid-template-columns: 110px 1fr;
-    gap: var(--space-4);
-    align-items: start;
+  .hero {
+    min-height: 0;
   }
 
-  .hero-desc {
-    -webkit-line-clamp: 2;
+  .hero-bg {
+    left: 0;
+  }
+
+  .hero::after {
+    background: linear-gradient(180deg, transparent 0%, var(--color-bg) 95%);
+  }
+
+  .hero-inner {
+    padding: var(--space-7) var(--page-gutter) var(--space-6);
+  }
+
+  .hero-chips .chip-lg {
+    font-size: var(--text-sm);
+  }
+
+  .hero-actions .btn {
+    flex: 1;
+    padding: 0 var(--space-4);
   }
 
   .toolbar {

@@ -40,6 +40,30 @@ describe('MovieList', () => {
 
   afterEach(() => httpMock.verify());
 
+  it('adds the banner movie to the watchlist', () => {
+    httpMock.expectOne((r) => r.url === moviesUrl).flush(page(0, 1));
+
+    component.addTopToWatchlist();
+    expect(component.topWatchlistState()).toBe('adding');
+
+    const req = httpMock.expectOne(`${API_URL}/watchlist/`);
+    expect(req.request.body).toEqual({ movie: 7, status: 'planned' });
+    req.flush({ id: 1, movie: 7, status: 'planned' });
+
+    expect(component.topWatchlistState()).toBe('added');
+  });
+
+  it('treats "already in your watchlist" as added', () => {
+    httpMock.expectOne((r) => r.url === moviesUrl).flush(page(0, 1));
+
+    component.addTopToWatchlist();
+    httpMock
+      .expectOne(`${API_URL}/watchlist/`)
+      .flush({ movie: ['This movie is already in your watchlist.'] }, { status: 400, statusText: 'Bad Request' });
+
+    expect(component.topWatchlistState()).toBe('added');
+  });
+
   it('loads the first page', () => {
     const req = httpMock.expectOne((r) => r.url === moviesUrl);
     expect(req.request.params.get('page')).toBe('1');

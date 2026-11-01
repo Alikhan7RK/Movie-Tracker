@@ -19,8 +19,10 @@ connected through a REST API with **JWT authentication**.
 | Movies (dark) | Movie page (light) |
 |---|---|
 | ![Movie list with the top rated movie banner](docs/screenshots/movies-dark.png) | ![Movie page with backdrop header and reviews](docs/screenshots/movie-detail-light.png) |
-| **Watchlist** | **Sign in** |
-| ![Watchlist with status tabs](docs/screenshots/watchlist-dark.png) | ![Sign in page](docs/screenshots/login-dark.png) |
+| **Watchlist (light)** | **Profile** |
+| ![Watchlist with status tabs](docs/screenshots/watchlist-light.png) | ![Profile with avatar and empty reviews](docs/screenshots/profile-dark.png) |
+| **Sign in** | |
+| ![Sign in page](docs/screenshots/login-dark.png) | |
 
 <p>
   <img src="docs/screenshots/movies-phone.png" alt="Movie list on a phone" width="220">
@@ -59,7 +61,8 @@ connected through a REST API with **JWT authentication**.
 * Filter tabs: All / Planned / Watching / Completed
 
 ### 🎨 Design
-* Cinema-style theme: charcoal background, one orange accent, large posters, Inter font (Google Fonts)
+* Cinema-style theme: charcoal background, one orange accent, "glass" cards, metadata pills, large posters,
+  Inter font (Google Fonts); a full-width banner with the top rated movie on the movie list
 * **Dark / light theme** toggle in the navbar; the choice is saved in `localStorage` (first visit follows the OS setting)
 * Fully responsive: phone (menu button), tablet and desktop layouts
 * All colors, font sizes, spacing and radius are CSS variables in `frontend/src/styles.css` (the design system);

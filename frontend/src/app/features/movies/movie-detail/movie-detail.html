@@ -37,13 +37,13 @@
 
         <div class="score">
           <span class="score-value">{{ movie.rating | rating }}</span>
-          <span class="score-note">{{ reviews().length ? 'from ' + reviews().length + ' review' + (reviews().length !== 1 ? 's' : '') : 'original rating' }}</span>
+          <span class="score-note">{{ reviews().length ? 'From ' + reviews().length + ' review' + (reviews().length !== 1 ? 's' : '') : 'Original rating' }}</span>
         </div>
 
         <p class="desc">{{ movie.description }}</p>
 
         @if (movie.actors) {
-          <p class="cast"><span>Cast</span> {{ movie.actors }}</p>
+          <p class="cast"><span>Cast:</span> {{ movie.actors }}</p>
         }
 
         <div class="actions">

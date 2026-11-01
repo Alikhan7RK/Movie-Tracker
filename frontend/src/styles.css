@@ -30,10 +30,19 @@
   --color-scrim: rgba(0, 0, 0, 0.6);
   --color-on-scrim: #ffffff;      /* text on top of a photo darkened by --color-scrim */
   --color-nav-bg: rgba(20, 24, 28, 0.86);
-  --backdrop-opacity: 0.35;
+  --backdrop-opacity: 0.45;
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 10px 28px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.55);
+  /* "Glass" cards: a bit lighter than the page, thin light border, soft shadow */
+  --glass-bg: rgba(255, 255, 255, 0.045);
+  --glass-bg-hover: rgba(255, 255, 255, 0.07);
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --glow-accent: 0 0 0 1px rgba(255, 128, 0, 0.7), 0 10px 34px rgba(255, 128, 0, 0.28);
+  --glow-poster: 0 18px 50px rgba(255, 128, 0, 0.22), 0 10px 30px rgba(0, 0, 0, 0.5);
+  --gradient-accent: radial-gradient(circle at 30% 25%, #ffb35c 0%, #ff8000 45%, #d95f00 100%);
+  --hero-image-opacity: 0.55;
   color-scheme: dark;
 }
 
@@ -60,10 +69,18 @@
   --color-scrim: rgba(17, 20, 23, 0.6);
   --color-on-scrim: #ffffff;
   --color-nav-bg: rgba(244, 242, 238, 0.88);
-  --backdrop-opacity: 0.22;
+  --backdrop-opacity: 0.3;
   --shadow-sm: 0 2px 6px rgba(27, 31, 35, 0.08);
   --shadow-md: 0 10px 28px rgba(27, 31, 35, 0.12);
   --shadow-lg: 0 24px 60px rgba(27, 31, 35, 0.18);
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg-hover: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(27, 31, 35, 0.08);
+  --shadow-card: 0 6px 20px rgba(27, 31, 35, 0.07);
+  --glow-accent: 0 0 0 1px rgba(240, 120, 0, 0.75), 0 10px 30px rgba(240, 120, 0, 0.22);
+  --glow-poster: 0 18px 46px rgba(240, 120, 0, 0.2), 0 10px 26px rgba(27, 31, 35, 0.18);
+  --gradient-accent: radial-gradient(circle at 30% 25%, #ffb35c 0%, #f07800 45%, #c95700 100%);
+  --hero-image-opacity: 0.5;
   color-scheme: light;
 }
 
@@ -77,6 +94,7 @@
   --text-xl: 1.375rem;  /* 22px */
   --text-2xl: 1.75rem;  /* 28px */
   --text-3xl: clamp(1.9rem, 1.2rem + 2.6vw, 3rem);
+  --text-hero: clamp(2.6rem, 1rem + 6vw, 5.75rem);
   --weight-normal: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
@@ -189,10 +207,14 @@ button {
   color: var(--color-accent-text);
 }
 
+/* Glass card: slightly lighter than the page, 1px subtle border, soft shadow */
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: var(--space-5);
 }
 
@@ -247,6 +269,17 @@ button {
 .btn-ghost:hover:not(:disabled) {
   border-color: var(--color-accent);
   color: var(--color-accent-text);
+}
+
+/* Secondary action, e.g. "+ Add to watchlist" */
+.btn-outline {
+  background: transparent;
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: var(--color-accent-soft);
 }
 
 .btn-danger {
@@ -390,16 +423,44 @@ select option {
 }
 
 /* ---------- Small pieces ---------- */
+/* Pill for metadata: rating, year, duration, genre */
 .chip {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-1);
   padding: 3px 10px;
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-pill);
+  background: var(--glass-bg);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
   color: var(--color-text-muted);
   white-space: nowrap;
+}
+
+.chip-lg {
+  padding: 5px 14px;
+  font-size: var(--text-md);
+}
+
+/* Rating is always orange */
+.chip-rating {
+  color: var(--color-accent-text);
+  font-weight: var(--weight-bold);
+}
+
+/* Circle with the user's first letter */
+.avatar-dot {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  color: var(--color-on-accent);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-black);
 }
 
 /* Text produced by the rating pipe, e.g. "★ 8.8/10" */
@@ -436,8 +497,8 @@ select option {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: blur(28px) saturate(1.2);
-  transform: scale(1.2);
+  filter: blur(18px) saturate(1.25);
+  transform: scale(1.15);
   opacity: var(--backdrop-opacity);
 }
 

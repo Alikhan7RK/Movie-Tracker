@@ -1,5 +1,10 @@
 # 🚀 Deploying CineTrack for free
 
+> ℹ️ **CineTrack is not deployed.** The project is finished (v1.0.0) and runs locally (see the README).
+> This file is kept as a guide in case you want to run it in production: the code is already prepared for it
+> (settings from environment variables, PostgreSQL, gunicorn, whitenoise, `backend/build.sh`, `netlify.toml`).
+> The service details below were checked in November 2026 and may have changed since.
+
 This guide puts the app on the internet with three free services:
 
 | Part | Service | What it does |

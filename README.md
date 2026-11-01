@@ -6,11 +6,13 @@ A full-stack web application for browsing movies, writing reviews and keeping a 
 Built for the KBTU Web Development course with **Angular** (frontend) and **Django REST Framework** (backend),
 connected through a REST API with **JWT authentication**.
 
+**Status:** finished — **v1.0.0**. The app runs locally (see [Installation & Setup](#-installation--setup));
+it is not deployed online.
+
 ## 👥 Team
 
-* Ryskulov Alikhan
-* Assylbek Manarbek
-* Kenzhetayev Kaisar
+Original team: **Ryskulov Alikhan, Assylbek Manarbek, Kenzhetayev Kaisar**.
+Further developed by **Alikhan Ryskulov**.
 
 ---
 
@@ -66,7 +68,7 @@ connected through a REST API with **JWT authentication**.
 ### 🎨 Design
 * Cinema-style theme: charcoal background, one orange accent, "glass" cards, metadata pills, large posters,
   Inter font (Google Fonts); a full-width banner with the top rated movie on the movie list
-* **Dark / light theme** toggle in the navbar; the choice is saved in `localStorage` (first visit follows the OS setting)
+* **Dark / light theme** toggle in the navbar; dark by default, the choice is saved in `localStorage`
 * Fully responsive: phone (menu button), tablet and desktop layouts
 * All colors, font sizes, spacing and radius are CSS variables in `frontend/src/styles.css` (the design system);
   components only use `var(--...)`, so the light theme is just a second set of variable values
@@ -83,8 +85,10 @@ connected through a REST API with **JWT authentication**.
 |---|---|
 | Frontend | Angular 21 (standalone components, signals, `@if`/`@for` control flow, HttpClient, Router, FormsModule) |
 | Backend | Django 6, Django REST Framework, `djangorestframework-simplejwt`, `django-cors-headers` |
-| Database | SQLite locally, PostgreSQL in production (`dj-database-url`, `psycopg`) |
-| Production | `gunicorn`, `whitenoise`; Render (API) + Neon (database) + Netlify (frontend) |
+| API docs | `drf-spectacular` (OpenAPI 3 schema + Swagger UI) |
+| External data | The Movie Database (TMDB) API for the admin import |
+| Database | SQLite (local); production-ready for PostgreSQL (`dj-database-url`, `psycopg`) |
+| Production setup | `gunicorn`, `whitenoise`, settings from environment variables — prepared, not deployed ([DEPLOY.md](DEPLOY.md)) |
 | CI | GitHub Actions: backend tests, frontend tests, production build on every push |
 | Tests | Django `APITestCase` (backend), Vitest (frontend, `ng test`) |
 
@@ -124,33 +128,33 @@ ng serve        # or: npx ng serve
 Open http://localhost:4200. Log in with the superuser to see the **Add movie**, **Edit** and **Delete** buttons.
 
 The API address comes from `frontend/src/environments/`: `environment.development.ts` (localhost, used by `ng serve`)
-and `environment.ts` (the deployed backend, used by `ng build`). Services import it via `src/app/core/api.config.ts`.
+and `environment.ts` (a production backend, used by `ng build`). Services import it via `src/app/core/api.config.ts`.
 
 ### 3. Running the tests
 
 ```bash
 cd backend
-python manage.py test movies        # 89 tests (TMDB is mocked: no network): auth + token refresh, profile editing, movie search/filters/
-                                    # sorting/pagination, permissions, reviews + rating, watchlist, seed
+python manage.py test movies        # 89 tests: auth + token refresh, profile, movie search/filters/sorting/pagination,
+                                    # permissions, reviews + rating, watchlist, seed, API docs, TMDB import (mocked: no network)
 
 cd frontend
-ng test --watch=false               # component, interceptor, pipe and helper tests (Vitest)
+npx ng test --watch=false           # 44 tests: components, interceptor, services, pipe and helpers (Vitest)
+npx ng build                        # production build
 ```
+
+The same checks run on GitHub Actions for every push (badge at the top).
 
 > **Note:** Vitest cannot find test files if the project path contains brackets, e.g. `Movie-Tracker-main (2)`.
 > Clone or move the project to a folder without `(` `)` in its path before running `ng test`.
 
 ---
 
-## ☁️ Deployment
+## ☁️ Running in production (optional)
 
-The app can run for free on **Neon** (PostgreSQL) + **Render** (Django API) + **Netlify** (Angular).
-Step-by-step guide for beginners: **[DEPLOY.md](DEPLOY.md)**.
-
-In short: the backend reads its settings from environment variables (`DATABASE_URL`, `SECRET_KEY`,
-`CORS_ALLOWED_ORIGINS`, ...). Without them it falls back to the local defaults (SQLite, `DEBUG` on),
-so nothing changes for local development. `backend/build.sh` runs `collectstatic`, `migrate`, `seed_movies`
-and `create_admin` on every deploy.
+The app is **not deployed**, but it is prepared for it: the backend reads its settings from environment variables
+(`DATABASE_URL`, `SECRET_KEY`, `CORS_ALLOWED_ORIGINS`, ...) and falls back to the local defaults (SQLite, `DEBUG` on)
+without them. `backend/build.sh` runs `collectstatic`, `migrate`, `seed_movies` and `create_admin`.
+[DEPLOY.md](DEPLOY.md) is a step-by-step guide for running it on free services (Neon + Render + Netlify).
 
 ---
 
@@ -242,26 +246,43 @@ Movie-Tracker/
 │   │   ├── serializers.py      # DRF serializers + validation
 │   │   ├── views.py            # function views (@api_view) and class views (APIView)
 │   │   ├── pagination.py       # MoviePagination (12 per page + total_pages)
+│   │   ├── schema.py           # response shapes for the API docs (drf-spectacular)
+│   │   ├── tmdb.py             # TMDB client + import logic
 │   │   ├── urls.py             # all /api/ routes
 │   │   ├── tests.py            # API tests
 │   │   ├── migrations/
 │   │   └── management/commands/  # seed_movies, create_admin (admin from env vars)
-│   ├── build.sh                # Render build: install, collectstatic, migrate, seed, create admin
+│   ├── build.sh                # production build: install, collectstatic, migrate, seed, create admin
+│   ├── .env.example            # local secrets template (TMDB_API_KEY); copy to .env (git-ignored)
 │   └── requirements.txt
+├── docs/screenshots/           # README screenshots
 └── frontend/
     ├── public/                 # static files (no-poster.svg placeholder)
-    └── src/app/
-        ├── core/               # api.config.ts, auth interceptor, authGuard, adminGuard
-        ├── features/
-        │   ├── auth/           # login, register pages
-        │   ├── movies/         # movie-list, movie-detail, movie-form (add/edit)
-        │   ├── watchlist/      # watchlist page
-        │   └── profile/        # profile page
-        ├── models/             # TypeScript interfaces (Movie, Review, WatchlistItem, UserProfile)
-        ├── services/           # HttpClient services: auth, movie, review, watchlist; theme (dark/light)
-        ├── shared/             # navbar, movie-card, rating pipe, YouTube helper
-        └── app.routes.ts       # page routes
+    └── src/
+        ├── environments/       # API URL for development / production
+        ├── styles.css          # design system: CSS variables (dark + light) and shared classes
+        └── app/
+            ├── core/           # api.config.ts, auth interceptor, authGuard, adminGuard
+            ├── features/
+            │   ├── auth/       # login, register pages
+            │   ├── movies/     # movie-list, movie-detail, movie-form (add/edit), tmdb-import
+            │   ├── watchlist/  # watchlist page
+            │   └── profile/    # profile page
+            ├── models/         # TypeScript interfaces (Movie, Review, WatchlistItem, UserProfile, TMDB result)
+            ├── services/       # HttpClient services: auth, movie, review, watchlist, tmdb; theme (dark/light)
+            ├── shared/         # navbar, movie-card, rating pipe, YouTube + backdrop helpers
+            └── app.routes.ts   # page routes
 ```
+
+---
+
+## 💡 Future ideas
+
+Not part of v1.0.0 — possible next steps:
+
+* **Stats page** with charts (watchlist by status, reviews per genre, ratings over time)
+* **Recommendations** based on the genres of movies you rated highly or completed
+* **Custom lists** — your own named movie lists, beyond the single watchlist
 
 ---
 

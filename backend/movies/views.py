@@ -5,9 +5,10 @@ from drf_spectacular.utils import (
 )
 from rest_framework import serializers, status
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser, SAFE_METHODS
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 
@@ -58,10 +59,15 @@ class PublicReadMixin:
     summary='Create an account',
     description='Anyone can register. `email` is optional; the password needs at least 4 characters.',
     request=RegisterSerializer,
-    responses={201: RegisterResponseSerializer, 400: OpenApiResponse(description='Validation errors, e.g. the username is taken.')},
+    responses={
+        201: RegisterResponseSerializer,
+        400: OpenApiResponse(description='Validation errors, e.g. the username is taken.'),
+        429: OpenApiResponse(description='Too many registrations from this IP (10 per hour). See the Retry-After header.'),
+    },
 )
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([ScopedRateThrottle])
 def register_view(request):
     serializer = RegisterSerializer(data=request.data)
 
@@ -79,15 +85,25 @@ def register_view(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# @api_view does not copy a throttle_scope onto the view class it builds, so it is set here.
+# Without it ScopedRateThrottle lets every request through.
+register_view.cls.throttle_scope = 'register'
+
+
 @extend_schema(
     tags=['Auth'],
     summary='Log in and get JWT tokens',
     description='Returns an `access` token (send it as `Authorization: Bearer <access>`) and a `refresh` token.',
     request=LoginSerializer,
-    responses={200: TokenPairSerializer, 401: ErrorSerializer},
+    responses={
+        200: TokenPairSerializer,
+        401: ErrorSerializer,
+        429: OpenApiResponse(description='Too many login attempts from this IP (10 per minute). See the Retry-After header.'),
+    },
 )
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([ScopedRateThrottle])
 def login_view(request):
     serializer = LoginSerializer(data=request.data)
 
@@ -114,6 +130,11 @@ def login_view(request):
         )
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Same as register_view above: the scope must be set on the generated view class.
+login_view.cls.throttle_scope = 'login'
+
 
 @extend_schema(
     methods=['GET'],

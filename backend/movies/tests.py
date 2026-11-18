@@ -6,6 +6,7 @@ from unittest import mock
 from urllib.error import URLError
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.management import call_command
 from django.test import override_settings
 from rest_framework import status
@@ -28,6 +29,11 @@ def make_movie(title='Test Movie', base_rating='8.0', **extra):
 
 
 class AuthTests(APITestCase):
+    def setUp(self):
+        # login/register are rate-limited per IP and the counts live in the cache,
+        # which (unlike the database) is NOT reset between tests
+        cache.clear()
+
     def test_register_creates_user(self):
         response = self.client.post('/api/register/', {'username': 'alice', 'password': 'secret123'})
 
@@ -103,6 +109,7 @@ class AuthTests(APITestCase):
 
 class TokenRefreshTests(APITestCase):
     def setUp(self):
+        cache.clear()  # setUp logs in; start with an empty login throttle (see AuthTests.setUp)
         User.objects.create_user('alice', password='secret123')
         self.tokens = self.client.post('/api/login/', {'username': 'alice', 'password': 'secret123'}).data
 
@@ -138,6 +145,7 @@ class TokenRefreshTests(APITestCase):
 
 class ProfileEditTests(APITestCase):
     def setUp(self):
+        cache.clear()  # a password test logs in twice; start with an empty login throttle
         self.alice = User.objects.create_user('alice', email='alice@example.com', password='secret123')
         User.objects.create_user('bob', password='secret123')
 
@@ -963,3 +971,60 @@ class SeedTmdbIdTests(APITestCase):
 
         self.assertEqual(Movie.objects.get(title='Interstellar').tmdb_id, 157336)
         self.assertFalse(Movie.objects.filter(tmdb_id__isnull=True).exists())
+
+
+class AuthThrottleTests(APITestCase):
+    # R3: login and register are rate-limited per client IP (settings.REST_FRAMEWORK DEFAULT_THROTTLE_RATES)
+    LOGIN_LIMIT = 10      # 'login': '10/minute'
+    REGISTER_LIMIT = 10   # 'register': '10/hour'
+
+    def setUp(self):
+        cache.clear()
+        User.objects.create_user('alice', password='secret123')
+
+    def tearDown(self):
+        # Leave no throttle counts behind for the test classes that run after this one
+        cache.clear()
+
+    def login(self, password='wrong', **extra):
+        return self.client.post('/api/login/', {'username': 'alice', 'password': password}, **extra)
+
+    def test_eleventh_login_attempt_within_a_minute_is_throttled(self):
+        for _ in range(self.LOGIN_LIMIT):
+            self.assertEqual(self.login().status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Even the correct password is refused now, so guessing cannot continue
+        response = self.login(password='secret123')
+
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+        self.assertIn('Retry-After', response)
+
+    def test_changing_x_forwarded_for_does_not_dodge_the_login_limit(self):
+        # NUM_PROXIES=0: the throttle uses REMOTE_ADDR, not the client-controlled X-Forwarded-For header
+        for i in range(self.LOGIN_LIMIT):
+            response = self.login(HTTP_X_FORWARDED_FOR=f'10.0.0.{i}')
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        response = self.login(HTTP_X_FORWARDED_FOR='10.0.0.99')
+
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
+    def test_eleventh_registration_is_throttled(self):
+        for i in range(self.REGISTER_LIMIT):
+            response = self.client.post('/api/register/', {'username': f'user{i}', 'password': 'secret123'})
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.post('/api/register/', {'username': 'one-too-many', 'password': 'secret123'})
+
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+        self.assertFalse(User.objects.filter(username='one-too-many').exists())
+
+    def test_login_and_register_have_separate_limits(self):
+        for _ in range(self.LOGIN_LIMIT + 1):
+            self.login()
+        self.assertEqual(self.login().status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
+        # Using up the login limit does not block registration
+        response = self.client.post('/api/register/', {'username': 'bob', 'password': 'secret123'})
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

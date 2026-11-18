@@ -201,6 +201,16 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
     ),
+    # Rate limits per client IP. Only views with a matching throttle_scope are limited
+    # (login_view, register_view); there is no global throttle. Counts live in the default cache.
+    'DEFAULT_THROTTLE_RATES': {
+        'login': '10/minute',
+        'register': '10/hour',
+    },
+    # How many proxies sit in front of Django. 0 = use REMOTE_ADDR and ignore the client-controlled
+    # X-Forwarded-For header (otherwise anyone can dodge the rate limits by changing it).
+    # Must be 1 behind Render's proxy, or every user would share the proxy's IP.
+    'NUM_PROXIES': int(os.environ.get('NUM_PROXIES', '0')),
     # OpenAPI schema for the docs at /api/docs/
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }

@@ -757,6 +757,15 @@ class ApiDocsTests(APITestCase):
         self.assertIn('/api/movies/', content)
         self.assertIn('/api/tmdb/import/', content)
 
+    def test_public_reads_are_marked_as_optional_auth(self):
+        # {} in `security` = the endpoint also works without a token (Swagger shows it as public)
+        paths = self.client.get('/api/schema/', {'format': 'json'}).json()['paths']
+
+        self.assertIn({}, paths['/api/movies/']['get']['security'])
+        self.assertIn({}, paths['/api/movies/{id}/']['get']['security'])
+        self.assertIn({}, paths['/api/reviews/']['get']['security'])
+        self.assertNotIn({}, paths['/api/movies/']['post']['security'])
+
     def test_swagger_ui_page_loads(self):
         response = self.client.get('/api/docs/')
 

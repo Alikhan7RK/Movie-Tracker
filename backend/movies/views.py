@@ -42,6 +42,17 @@ from .serializers import (
 MOVIE_ORDERING_FIELDS = ['rating', '-rating', 'year', '-year', 'title', '-title', 'created_at', '-created_at']
 
 
+class PublicReadMixin:
+    # Anyone can read (GET/HEAD/OPTIONS); writes need `write_permission`.
+    # Returning AllowAny() for reads also keeps the Swagger docs marking these GETs as public.
+    write_permission = IsAuthenticated
+
+    def get_permissions(self):
+        if self.request.method in SAFE_METHODS:
+            return [AllowAny()]
+        return [self.write_permission()]
+
+
 @extend_schema(
     tags=['Auth'],
     summary='Create an account',
@@ -191,12 +202,9 @@ def genre_list_view(request):
     #)
 
 
-class MovieListCreateView(APIView):
+class MovieListCreateView(PublicReadMixin, APIView):
     # Anyone can read movies, only admins (is_staff) can create them
-    def get_permissions(self):
-        if self.request.method in SAFE_METHODS:
-            return [AllowAny()]
-        return [IsAdminUser()]
+    write_permission = IsAdminUser
 
     @extend_schema(
         tags=['Movies'],
@@ -265,12 +273,9 @@ class MovieListCreateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class MovieDetailView(APIView):
+class MovieDetailView(PublicReadMixin, APIView):
     # Anyone can read a movie, only admins (is_staff) can edit or delete it
-    def get_permissions(self):
-        if self.request.method in SAFE_METHODS:
-            return [AllowAny()]
-        return [IsAdminUser()]
+    write_permission = IsAdminUser
 
     def get_object(self, pk):
         try:
@@ -322,12 +327,9 @@ class MovieDetailView(APIView):
         return Response({'message': 'Movie deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 
-class ReviewListCreateView(APIView):
+class ReviewListCreateView(PublicReadMixin, APIView):
     # Anyone can read reviews, only logged-in users can write them
-    def get_permissions(self):
-        if self.request.method in SAFE_METHODS:
-            return [AllowAny()]
-        return [IsAuthenticated()]
+    write_permission = IsAuthenticated
 
     @extend_schema(
         tags=['Reviews'],

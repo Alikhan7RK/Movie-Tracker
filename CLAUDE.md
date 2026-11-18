@@ -1,5 +1,7 @@
 # Movie Tracker (CineTrack) — project notes for Claude Code
 
+Agent operating rules: see @AGENTS.md — they take priority over everything else in this file.
+
 Started as a KBTU Web Development team project (Ryskulov Alikhan, Assylbek Manarbek, Kenzhetayev Kaisar);
 further developed by Alikhan Ryskulov as a solo project.
 Goal: full-stack app showing Angular <-> DRF over REST, JWT auth, CRUD, clean UI. README.md lists the features.
@@ -12,7 +14,7 @@ gunicorn/whitenoise/PostgreSQL, `build.sh`, `netlify.toml`, DEPLOY.md) stays as 
   - `cd backend && pip install -r requirements.txt && python manage.py migrate && python manage.py seed_movies && python manage.py runserver`
   - All API routes live under `/api/` in `backend/movies/urls.py`; views are APIView classes / @api_view functions in `views.py`
 - frontend/: Angular 21, standalone components, new control flow (`@if`, `@for`), FormsModule/ngModel, functional interceptor + guard
-  - `cd frontend && npm install && ng serve` (http://localhost:4200)
+  - `cd frontend && npm ci && ng serve` (http://localhost:4200)
   - API base URL: `API_URL` in `frontend/src/app/core/api.config.ts`, read from `src/environments/environment*.ts`
     (`.development.ts` = localhost for `ng serve`/`ng test`, `environment.ts` = production URL from DEPLOY.md for `ng build`).
     Never hard-code it.

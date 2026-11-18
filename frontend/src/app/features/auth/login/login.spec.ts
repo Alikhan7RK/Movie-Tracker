@@ -42,4 +42,17 @@ describe('Login', () => {
     expect(component.error()).toBe('Invalid username or password.');
     expect(component.loading()).toBe(false);
   });
+
+  it('shows a throttle message instead of "wrong password" for 429', () => {
+    component.username = 'alice';
+    component.password = 'secret123';
+    component.onSubmit();
+
+    httpMock
+      .expectOne(`${API_URL}/login/`)
+      .flush({ detail: 'Request was throttled. Expected available in 60 seconds.' }, { status: 429, statusText: 'Too Many Requests' });
+
+    expect(component.error()).toBe('Too many login attempts. Please wait a minute and try again.');
+    expect(component.loading()).toBe(false);
+  });
 });

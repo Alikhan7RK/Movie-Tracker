@@ -56,4 +56,17 @@ describe('Register', () => {
     expect(component.error()).toBe('This password is too common.');
     expect(component.loading()).toBe(false);
   });
+
+  it('shows a throttle message for 429', () => {
+    component.username = 'bob';
+    component.password = 'Popcorn-Reel-42';
+    component.onSubmit();
+
+    httpMock
+      .expectOne(`${API_URL}/register/`)
+      .flush({ detail: 'Request was throttled. Expected available in 3600 seconds.' }, { status: 429, statusText: 'Too Many Requests' });
+
+    expect(component.error()).toBe('Too many sign-up attempts. Please try again later.');
+    expect(component.loading()).toBe(false);
+  });
 });

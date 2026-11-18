@@ -39,7 +39,10 @@ export class Register {
       },
       error: (err) => {
         const data = err.error;
-        if (data?.username) {
+        if (err.status === 429) {
+          // Backend register throttle (10 per hour), so "wait a minute" would be wrong here
+          this.error.set('Too many sign-up attempts. Please try again later.');
+        } else if (data?.username) {
           this.error.set(data.username[0]);
         } else if (data?.password) {
           // Django's password rules, e.g. "This password is too common."

@@ -43,4 +43,17 @@ describe('Register', () => {
     expect(component.error()).toBe('Username already exists.');
     expect(component.loading()).toBe(false);
   });
+
+  it('shows the backend message when the password is too weak', () => {
+    component.username = 'bob';
+    component.password = 'password';
+    component.onSubmit();
+
+    httpMock
+      .expectOne(`${API_URL}/register/`)
+      .flush({ password: ['This password is too common.'] }, { status: 400, statusText: 'Bad Request' });
+
+    expect(component.error()).toBe('This password is too common.');
+    expect(component.loading()).toBe(false);
+  });
 });

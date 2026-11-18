@@ -41,6 +41,9 @@ export class Register {
         const data = err.error;
         if (data?.username) {
           this.error.set(data.username[0]);
+        } else if (data?.password) {
+          // Django's password rules, e.g. "This password is too common."
+          this.error.set(data.password[0]);
         } else {
           this.error.set('Registration failed. Please try again.');
         }

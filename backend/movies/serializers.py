@@ -1,6 +1,8 @@
 from datetime import date
 
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from .models import Genre, Movie, Review, Watchlist
 
@@ -8,12 +10,23 @@ from .models import Genre, Movie, Review, Watchlist
 class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)
     email = serializers.EmailField(required=False, allow_blank=True)
-    password = serializers.CharField(write_only=True, min_length=4)
+    # Strength is checked in validate() with settings.AUTH_PASSWORD_VALIDATORS
+    password = serializers.CharField(write_only=True)
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError("Username already exists.")
         return value
+
+    def validate(self, attrs):
+        # The user does not exist yet; an unsaved User lets UserAttributeSimilarityValidator
+        # compare the password with the username and email
+        user = User(username=attrs['username'], email=attrs.get('email', ''))
+        try:
+            validate_password(attrs['password'], user=user)
+        except DjangoValidationError as error:
+            raise serializers.ValidationError({'password': list(error.messages)})
+        return attrs
 
     def create(self, validated_data):
         user = User.objects.create_user(
@@ -38,12 +51,20 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True)
-    new_password = serializers.CharField(write_only=True, min_length=4)  # same rule as RegisterSerializer
+    new_password = serializers.CharField(write_only=True)  # same rules as RegisterSerializer
 
     def validate_old_password(self, value):
         user = self.context['request'].user
         if not user.check_password(value):
             raise serializers.ValidationError("Old password is incorrect.")
+        return value
+
+    def validate_new_password(self, value):
+        # settings.AUTH_PASSWORD_VALIDATORS, compared with the logged-in user's username/email
+        try:
+            validate_password(value, user=self.context['request'].user)
+        except DjangoValidationError as error:
+            raise serializers.ValidationError(list(error.messages))
         return value
 
 

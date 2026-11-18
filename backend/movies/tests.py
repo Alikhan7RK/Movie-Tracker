@@ -35,7 +35,7 @@ class AuthTests(APITestCase):
         cache.clear()
 
     def test_register_creates_user(self):
-        response = self.client.post('/api/register/', {'username': 'alice', 'password': 'secret123'})
+        response = self.client.post('/api/register/', {'username': 'alice', 'password': 'Popcorn-Reel-42'})
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(User.objects.filter(username='alice').exists())
@@ -201,11 +201,11 @@ class ProfileEditTests(APITestCase):
     def test_change_password_with_correct_old_password(self):
         self.client.force_authenticate(self.alice)
 
-        response = self.client.post('/api/profile/password/', {'old_password': 'secret123', 'new_password': 'newpass1'})
+        response = self.client.post('/api/profile/password/', {'old_password': 'secret123', 'new_password': 'Sunset-Ticket-77'})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.client.force_authenticate(None)
-        new_login = self.client.post('/api/login/', {'username': 'alice', 'password': 'newpass1'})
+        new_login = self.client.post('/api/login/', {'username': 'alice', 'password': 'Sunset-Ticket-77'})
         old_login = self.client.post('/api/login/', {'username': 'alice', 'password': 'secret123'})
         self.assertEqual(new_login.status_code, status.HTTP_200_OK)
         self.assertEqual(old_login.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -1011,10 +1011,10 @@ class AuthThrottleTests(APITestCase):
 
     def test_eleventh_registration_is_throttled(self):
         for i in range(self.REGISTER_LIMIT):
-            response = self.client.post('/api/register/', {'username': f'user{i}', 'password': 'secret123'})
+            response = self.client.post('/api/register/', {'username': f'user{i}', 'password': 'Popcorn-Reel-42'})
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        response = self.client.post('/api/register/', {'username': 'one-too-many', 'password': 'secret123'})
+        response = self.client.post('/api/register/', {'username': 'one-too-many', 'password': 'Popcorn-Reel-42'})
 
         self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
         self.assertFalse(User.objects.filter(username='one-too-many').exists())
@@ -1025,6 +1025,62 @@ class AuthThrottleTests(APITestCase):
         self.assertEqual(self.login().status_code, status.HTTP_429_TOO_MANY_REQUESTS)
 
         # Using up the login limit does not block registration
-        response = self.client.post('/api/register/', {'username': 'bob', 'password': 'secret123'})
+        response = self.client.post('/api/register/', {'username': 'bob', 'password': 'Popcorn-Reel-42'})
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+class PasswordValidationTests(APITestCase):
+    # R2: register and change-password run settings.AUTH_PASSWORD_VALIDATORS
+    STRONG = 'Popcorn-Reel-42'
+
+    def setUp(self):
+        cache.clear()  # register is rate-limited (10/hour); start with an empty throttle
+        self.alice = User.objects.create_user('alice', email='alice@example.com', password='secret123')
+
+    def tearDown(self):
+        cache.clear()
+
+    def register(self, username, password):
+        return self.client.post('/api/register/', {'username': username, 'password': password})
+
+    def assert_rejected(self, response, username, message):
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(message, ' '.join(response.data['password']))
+        self.assertFalse(User.objects.filter(username=username).exists())
+
+    def test_register_rejects_short_numeric_password(self):
+        self.assert_rejected(self.register('bob', '1234'), 'bob', 'too short')
+
+    def test_register_rejects_common_password(self):
+        self.assert_rejected(self.register('bob', 'password'), 'bob', 'too common')
+
+    def test_register_rejects_password_equal_to_username(self):
+        response = self.register('moviefan2026', 'moviefan2026')
+
+        self.assert_rejected(response, 'moviefan2026', 'too similar to the username')
+
+    def test_register_accepts_strong_password(self):
+        response = self.register('bob', self.STRONG)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(User.objects.get(username='bob').check_password(self.STRONG))
+
+    def test_change_password_rejects_weak_password(self):
+        self.client.force_authenticate(self.alice)
+
+        response = self.client.post('/api/profile/password/', {'old_password': 'secret123', 'new_password': 'password'})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('new_password', response.data)
+        self.alice.refresh_from_db()
+        self.assertTrue(self.alice.check_password('secret123'))
+
+    def test_change_password_accepts_strong_password(self):
+        self.client.force_authenticate(self.alice)
+
+        response = self.client.post('/api/profile/password/', {'old_password': 'secret123', 'new_password': self.STRONG})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.alice.refresh_from_db()
+        self.assertTrue(self.alice.check_password(self.STRONG))

@@ -8,8 +8,9 @@ import { UserProfile } from '../../models/user.model';
 import { AuthService } from '../../services/auth.service';
 import { API_URL } from '../../core/api.config';
 
-// Same rule as the backend (RegisterSerializer / ChangePasswordSerializer)
-const MIN_PASSWORD_LENGTH = 4;
+// Same minimum as the backend (Django's MinimumLengthValidator); the backend also rejects
+// common, all-digit and username-like passwords, and that message is shown from the 400 response
+const MIN_PASSWORD_LENGTH = 8;
 
 // DRF sends errors like {"username": ["A user with that username already exists."]} -> show the first message
 function firstErrorMessage(err: any, fallback: string): string {

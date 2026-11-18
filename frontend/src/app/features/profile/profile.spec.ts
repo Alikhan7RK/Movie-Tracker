@@ -65,6 +65,17 @@ describe('Profile', () => {
     expect(component.editing()).toBe(true);
   });
 
+  it('does not send the request when the new password is shorter than 8 characters', () => {
+    component.togglePasswordForm();
+    component.oldPassword = 'secret123';
+    component.newPassword = 'short12';
+    component.confirmPassword = 'short12';
+    component.changePassword();
+
+    httpMock.expectNone(`${API_URL}/profile/password/`);
+    expect(component.passwordError()).toBe('New password must be at least 8 characters.');
+  });
+
   it('does not send the password request when the new passwords differ', () => {
     component.togglePasswordForm();
     component.oldPassword = 'secret123';

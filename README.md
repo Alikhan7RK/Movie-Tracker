@@ -177,7 +177,7 @@ All endpoints start with `/api/`. Protected endpoints need the header `Authoriza
 | POST | `/api/logout/` | 🔒 | Blacklists the given `refresh` token |
 | GET | `/api/profile/` | 🔒 | Current user: `username`, `email`, `is_staff`, `reviews` |
 | PATCH | `/api/profile/` | 🔒 | Change your `username` and/or `email`; returns the updated profile |
-| POST | `/api/profile/password/` | 🔒 | Change password (`old_password`, `new_password`, min. 4 characters) |
+| POST | `/api/profile/password/` | 🔒 | Change password (`old_password`, `new_password`; must pass Django's password rules: min. 8 characters, not common, not only digits, not too similar to the username/email) |
 
 ### Movies and genres
 

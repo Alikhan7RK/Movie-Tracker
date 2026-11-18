@@ -57,7 +57,8 @@ class PublicReadMixin:
 @extend_schema(
     tags=['Auth'],
     summary='Create an account',
-    description='Anyone can register. `email` is optional; the password needs at least 4 characters.',
+    description='Anyone can register. `email` is optional. The password must pass the server password rules: '
+                'at least 8 characters, not a common password, not only digits, not too similar to the username or email.',
     request=RegisterSerializer,
     responses={
         201: RegisterResponseSerializer,
@@ -188,9 +189,10 @@ def profile_view(request):
 @extend_schema(
     tags=['Profile'],
     summary='Change my password',
-    description='Needs the current password (`old_password`). The new password needs at least 4 characters.',
+    description='Needs the current password (`old_password`). The new password must pass the same rules as '
+                'registration (at least 8 characters, not common, not only digits, not too similar to your username or email).',
     request=ChangePasswordSerializer,
-    responses={200: MessageSerializer, 400: OpenApiResponse(description='Wrong old password or too short new password.')},
+    responses={200: MessageSerializer, 400: OpenApiResponse(description='Wrong old password or too weak new password.')},
 )
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
